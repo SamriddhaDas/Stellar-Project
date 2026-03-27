@@ -29,7 +29,6 @@ Frontend → Backend → Smart Contract Logic
 ├── backend.js\
 ├── scholarship_frontend.html\
 ├── test.rs\
-├── public\
 ├── README.md
 
 
