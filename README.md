@@ -26,10 +26,10 @@ Frontend → Backend → Smart Contract Logic
 
 ## 📂 Project Structure
 
-├── backend.js
-├── scholarship_frontend.html
-├── test.rs
-├── public
+├── backend.js\
+├── scholarship_frontend.html\
+├── test.rs\
+├── public\
 ├── README.md
 
 
