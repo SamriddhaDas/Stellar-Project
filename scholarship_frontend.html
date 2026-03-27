@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MeritChain — Scholarship Disbursement Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN SYSTEM — Deep navy / gold / ivory
+   Aesthetic: Editorial Finance × Blockchain
+═══════════════════════════════════════════ */
+:root {
+  --navy:    #0a0e1a;
+  --navy2:   #111827;
+  --navy3:   #1c2538;
+  --gold:    #c9a84c;
+  --gold2:   #e8c96b;
+  --gold3:   #f5e09a;
+  --ivory:   #f4f0e6;
+  --ivory2:  #e8e2d4;
+  --slate:   #8b9ab0;
+  --slate2:  #b4c0d0;
+  --green:   #2ecc8a;
+  --red:     #e05c5c;
+  --orange:  #e89840;
+  --surface: #141c2e;
+  --surface2:#1a2540;
+  --border:  rgba(201,168,76,0.18);
+  --border2: rgba(201,168,76,0.08);
+  --glow:    0 0 40px rgba(201,168,76,0.12);
+  --radius:  12px;
+  --radius2: 20px;
+  --font-head: 'Playfair Display', serif;
+  --font-body: 'Syne', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--navy);
+  color:var(--ivory);
+  font-family:var(--font-body);
+  font-size:14px;
+  line-height:1.6;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+
+/* ── Noise texture overlay ── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:0;
+  opacity:.4;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--navy2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ══════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════ */
+.app{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:240px;
+  min-height:100vh;
+  background:var(--surface);
+  border-right:1px solid var(--border2);
+  display:flex;
+  flex-direction:column;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  flex-shrink:0;
+}
+.sidebar-logo{
+  padding:28px 24px 20px;
+  border-bottom:1px solid var(--border2);
+}
+.logo-mark{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:4px;
+}
+.logo-icon{
+  width:34px;height:34px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  box-shadow:0 4px 16px rgba(201,168,76,0.3);
+}
+.logo-text{
+  font-family:var(--font-head);
+  font-size:18px;
+  font-weight:700;
+  color:var(--ivory);
+  letter-spacing:-0.3px;
+}
+.logo-sub{
+  font-size:10px;
+  color:var(--slate);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  font-family:var(--font-mono);
+  padding-left:44px;
+}
+.sidebar-nav{padding:16px 12px;flex:1}
+.nav-section{margin-bottom:24px}
+.nav-section-label{
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--slate);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:0 12px;
+  margin-bottom:6px;
+}
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:var(--radius);
+  cursor:pointer;
+  transition:all .2s;
+  color:var(--slate2);
+  font-size:13px;
+  font-weight:600;
+  position:relative;
+  border:1px solid transparent;
+}
+.nav-item:hover{
+  background:var(--border2);
+  color:var(--ivory2);
+}
+.nav-item.active{
+  background:rgba(201,168,76,0.1);
+  color:var(--gold2);
+  border-color:var(--border);
+}
+.nav-item.active::before{
+  content:'';
+  position:absolute;
+  left:-12px;
+  top:50%;transform:translateY(-50%);
+  width:3px;height:18px;
+  background:var(--gold);
+  border-radius:2px;
+}
+.nav-icon{font-size:15px;width:18px;text-align:center}
+.nav-badge{
+  margin-left:auto;
+  background:var(--gold);
+  color:var(--navy);
+  font-size:10px;
+  font-weight:700;
+  padding:1px 7px;
+  border-radius:20px;
+  font-family:var(--font-mono);
+}
+.sidebar-footer{
+  padding:16px;
+  border-top:1px solid var(--border2);
+}
+.contract-status{
+  background:var(--navy2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:12px;
+}
+.cs-label{
+  font-size:10px;
+  color:var(--slate);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-family:var(--font-mono);
+  margin-bottom:6px;
+}
+.cs-address{
+  font-family:var(--font-mono);
+  font-size:10px;
+  color:var(--gold3);
+  word-break:break-all;
+  line-height:1.4;
+}
+.cs-dot{
+  display:inline-block;
+  width:7px;height:7px;
+  border-radius:50%;
+  background:var(--green);
+  margin-right:6px;
+  box-shadow:0 0 8px var(--green);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── Main area ── */
+.main{flex:1;overflow-y:auto;min-height:100vh}
+
+/* ── Topbar ── */
+.topbar{
+  padding:20px 32px;
+  border-bottom:1px solid var(--border2);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:rgba(10,14,26,0.8);
+  backdrop-filter:blur(12px);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.topbar-title{
+  font-family:var(--font-head);
+  font-size:22px;
+  font-weight:700;
+  color:var(--ivory);
+}
+.topbar-breadcrumb{
+  font-size:11px;
+  color:var(--slate);
+  font-family:var(--font-mono);
+  margin-top:2px;
+}
+.topbar-actions{display:flex;align-items:center;gap:12px}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;
+  border-radius:var(--radius);
+  font-family:var(--font-body);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+  border:none;
+  text-transform:none;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:var(--navy);
+  box-shadow:0 4px 16px rgba(201,168,76,0.25);
+}
+.btn-primary:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 24px rgba(201,168,76,0.35);
+}
+.btn-ghost{
+  background:transparent;
+  color:var(--slate2);
+  border:1px solid var(--border);
+}
+.btn-ghost:hover{background:var(--border2);color:var(--ivory2)}
+.btn-danger{
+  background:rgba(224,92,92,0.15);
+  color:var(--red);
+  border:1px solid rgba(224,92,92,0.3);
+}
+.btn-danger:hover{background:rgba(224,92,92,0.25)}
+.btn-success{
+  background:rgba(46,204,138,0.15);
+  color:var(--green);
+  border:1px solid rgba(46,204,138,0.3);
+}
+.btn-success:hover{background:rgba(46,204,138,0.25)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ── Content pages ── */
+.page{display:none;animation:fadeIn .3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page-content{padding:28px 32px}
+
+/* ══════════════════════════════════════
+   OVERVIEW / DASHBOARD
+══════════════════════════════════════ */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-bottom:28px;
+}
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:var(--radius2);
+  padding:22px 24px;
+  position:relative;
+  overflow:hidden;
+  transition:all .25s;
+}
+.stat-card:hover{
+  border-color:var(--border);
+  transform:translateY(-2px);
+  box-shadow:var(--glow);
+}
+.stat-card::after{
+  content:'';
+  position:absolute;
+  top:-40px;right:-40px;
+  width:100px;height:100px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(201,168,76,0.06),transparent 70%);
+  pointer-events:none;
+}
+.stat-label{
+  font-size:11px;
+  color:var(--slate);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-family:var(--font-mono);
+  margin-bottom:10px;
+}
+.stat-value{
+  font-family:var(--font-head);
+  font-size:30px;
+  font-weight:700;
+  color:var(--ivory);
+  line-height:1;
+  margin-bottom:8px;
+}
+.stat-value.gold{color:var(--gold2)}
+.stat-value.green{color:var(--green)}
+.stat-value.orange{color:var(--orange)}
+.stat-change{
+  font-size:11px;
+  font-family:var(--font-mono);
+  display:flex;align-items:center;gap:5px;
+}
+.stat-change.up{color:var(--green)}
+.stat-change.down{color:var(--red)}
+
+.dashboard-grid{
+  display:grid;
+  grid-template-columns:1.4fr 1fr;
+  gap:20px;
+}
+.card{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:var(--radius2);
+  overflow:hidden;
+}
+.card-header{
+  padding:18px 22px;
+  border-bottom:1px solid var(--border2);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.card-title{
+  font-family:var(--font-head);
+  font-size:16px;
+  font-weight:700;
+  color:var(--ivory);
+}
+.card-subtitle{
+  font-size:11px;
+  color:var(--slate);
+  font-family:var(--font-mono);
+  margin-top:1px;
+}
+.card-body{padding:20px 22px}
+
+/* Pool ring chart */
+.pool-visual{
+  display:flex;
+  align-items:center;
+  gap:28px;
+}
+.ring-wrap{position:relative;width:140px;height:140px;flex-shrink:0}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-center{
+  position:absolute;
+  inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+}
+.ring-pct{
+  font-family:var(--font-head);
+  font-size:26px;
+  font-weight:700;
+  color:var(--gold2);
+  line-height:1;
+}
+.ring-lbl{font-size:10px;color:var(--slate);font-family:var(--font-mono)}
+.pool-legend{flex:1}
+.legend-item{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:12px;
+}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-info{flex:1}
+.legend-name{font-size:12px;color:var(--slate2);font-family:var(--font-mono)}
+.legend-val{font-size:15px;font-weight:700;color:var(--ivory);font-family:var(--font-head)}
+
+/* Recent activity */
+.activity-list{max-height:260px;overflow-y:auto}
+.activity-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;
+  border-bottom:1px solid var(--border2);
+}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{
+  width:8px;height:8px;border-radius:50%;
+  flex-shrink:0;margin-top:5px;
+}
+.activity-dot.released{background:var(--green);box-shadow:0 0 8px var(--green)}
+.activity-dot.withheld{background:var(--red);box-shadow:0 0 8px var(--red)}
+.activity-dot.registered{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.activity-text{font-size:12px;color:var(--slate2);flex:1;line-height:1.5}
+.activity-text strong{color:var(--ivory);font-weight:600}
+.activity-time{font-size:10px;color:var(--slate);font-family:var(--font-mono);white-space:nowrap}
+
+/* Quick bar chart */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:8px}
+.bar{
+  flex:1;border-radius:4px 4px 0 0;
+  background:rgba(201,168,76,0.15);
+  border:1px solid var(--border2);
+  transition:all .3s;
+  position:relative;
+  cursor:pointer;
+  min-height:4px;
+}
+.bar:hover{background:rgba(201,168,76,0.3)}
+.bar-label{
+  font-size:9px;
+  color:var(--slate);
+  font-family:var(--font-mono);
+  text-align:center;
+  margin-top:5px;
+}
+
+/* ══════════════════════════════════════
+   STUDENTS TABLE
+══════════════════════════════════════ */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:2px solid var(--border)}
+th{
+  padding:12px 16px;
+  text-align:left;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--slate);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-weight:400;
+  white-space:nowrap;
+}
+td{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border2);
+  font-size:13px;
+  color:var(--ivory2);
+  vertical-align:middle;
+}
+tr:hover td{background:rgba(201,168,76,0.03)}
+.student-name{
+  font-family:var(--font-head);
+  font-size:14px;
+  font-weight:700;
+  color:var(--ivory);
+}
+.student-id{
+  font-family:var(--font-mono);
+  font-size:10px;
+  color:var(--slate);
+}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:600;
+  font-family:var(--font-mono);
+}
+.badge-active{background:rgba(46,204,138,0.12);color:var(--green);border:1px solid rgba(46,204,138,0.25)}
+.badge-suspended{background:rgba(224,92,92,0.12);color:var(--red);border:1px solid rgba(224,92,92,0.25)}
+.badge-graduated{background:rgba(201,168,76,0.12);color:var(--gold2);border:1px solid rgba(201,168,76,0.25)}
+.badge-pending{background:rgba(139,154,176,0.12);color:var(--slate2);border:1px solid rgba(139,154,176,0.25)}
+.gpa-bar{
+  display:flex;align-items:center;gap:8px;
+}
+.gpa-track{
+  flex:1;height:4px;background:var(--navy2);border-radius:2px;
+  max-width:80px;
+}
+.gpa-fill{height:100%;border-radius:2px;transition:width .3s}
+.sem-progress{
+  display:flex;gap:3px;
+}
+.sem-dot{
+  width:8px;height:8px;border-radius:2px;
+  background:var(--navy2);
+  border:1px solid var(--border2);
+}
+.sem-dot.done{background:var(--gold);border-color:var(--gold)}
+.sem-dot.current{background:var(--green);border-color:var(--green)}
+.actions-cell{display:flex;gap:6px;align-items:center}
+.icon-btn{
+  width:30px;height:30px;border-radius:8px;
+  display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;border:1px solid var(--border2);
+  background:transparent;color:var(--slate2);
+  transition:all .18s;font-size:13px;
+}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold2);background:rgba(201,168,76,0.1)}
+.icon-btn.danger:hover{border-color:var(--red);color:var(--red);background:rgba(224,92,92,0.1)}
+.icon-btn.success:hover{border-color:var(--green);color:var(--green);background:rgba(46,204,138,0.1)}
+
+/* ══════════════════════════════════════
+   DISBURSEMENT / LEDGER
+══════════════════════════════════════ */
+.ledger-filters{
+  display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;
+  align-items:center;
+}
+.filter-select{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--ivory2);
+  padding:8px 14px;
+  border-radius:var(--radius);
+  font-family:var(--font-body);
+  font-size:13px;
+  cursor:pointer;
+  outline:none;
+}
+.filter-select:focus{border-color:var(--gold)}
+.search-input{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  color:var(--ivory);
+  padding:8px 14px;
+  border-radius:var(--radius);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+  width:200px;
+  transition:border .2s;
+}
+.search-input::placeholder{color:var(--slate)}
+.search-input:focus{border-color:var(--gold)}
+
+.tx-hash{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--gold3);
+  cursor:pointer;
+}
+.tx-hash:hover{color:var(--gold2);text-decoration:underline}
+.amount-cell{
+  font-family:var(--font-mono);
+  font-weight:500;
+}
+.amount-cell.released{color:var(--green)}
+.amount-cell.withheld{color:var(--red)}
+
+/* ══════════════════════════════════════
+   RELEASE FUNDS FORM
+══════════════════════════════════════ */
+.release-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+.form-group{margin-bottom:18px}
+.form-label{
+  display:block;
+  font-size:11px;
+  color:var(--slate);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-family:var(--font-mono);
+  margin-bottom:7px;
+}
+.form-input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--ivory);
+  padding:11px 14px;
+  border-radius:var(--radius);
+  font-family:var(--font-body);
+  font-size:14px;
+  outline:none;
+  transition:all .2s;
+}
+.form-input:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(201,168,76,0.1);
+}
+.form-input::placeholder{color:var(--slate)}
+.form-select{
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b9ab0' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  padding-right:36px;
+}
+.form-hint{
+  font-size:11px;
+  color:var(--slate);
+  font-family:var(--font-mono);
+  margin-top:5px;
+}
+
+/* Verification gates */
+.gates-display{
+  background:var(--navy2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius2);
+  padding:20px;
+  margin-bottom:20px;
+}
+.gates-title{
+  font-size:11px;
+  color:var(--slate);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  font-family:var(--font-mono);
+  margin-bottom:14px;
+}
+.gate-row{
+  display:flex;align-items:center;gap:12px;
+  padding:9px 0;
+  border-bottom:1px solid var(--border2);
+}
+.gate-row:last-child{border-bottom:none}
+.gate-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.gate-icon.pass{background:rgba(46,204,138,0.15);color:var(--green)}
+.gate-icon.fail{background:rgba(224,92,92,0.15);color:var(--red)}
+.gate-icon.pending{background:rgba(139,154,176,0.1);color:var(--slate)}
+.gate-name{font-size:12px;font-family:var(--font-mono);color:var(--slate2);flex:1}
+.gate-result{font-size:11px;font-family:var(--font-mono)}
+.gate-result.pass{color:var(--green)}
+.gate-result.fail{color:var(--red)}
+.gate-result.pending{color:var(--slate)}
+
+/* ══════════════════════════════════════
+   SMART CONTRACT PANEL
+══════════════════════════════════════ */
+.contract-panel{
+  background:var(--navy2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius2);
+  overflow:hidden;
+}
+.contract-tabs{
+  display:flex;
+  border-bottom:1px solid var(--border2);
+  background:var(--surface);
+}
+.contract-tab{
+  padding:12px 20px;
+  font-size:12px;
+  font-family:var(--font-mono);
+  color:var(--slate);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all .2s;
+}
+.contract-tab.active{color:var(--gold2);border-bottom-color:var(--gold)}
+.contract-tab:hover:not(.active){color:var(--slate2)}
+.code-block{
+  background:var(--navy);
+  padding:20px;
+  overflow-x:auto;
+  max-height:380px;
+  overflow-y:auto;
+}
+.code-block pre{
+  font-family:var(--font-mono);
+  font-size:12px;
+  line-height:1.7;
+  color:var(--ivory2);
+  white-space:pre;
+}
+.kw{color:#c792ea}
+.fn{color:#82aaff}
+.ty{color:#ffcb6b}
+.st{color:#c3e88d}
+.cm{color:#546e7a;font-style:italic}
+.nu{color:#f78c6c}
+.mc{color:#89ddff}
+
+/* ══════════════════════════════════════
+   MODAL
+══════════════════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(4px);
+  z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;
+  transition:all .25s;
+}
+.modal-overlay.open{opacity:1;visibility:visible}
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius2);
+  width:500px;
+  max-width:95vw;
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 24px 80px rgba(0,0,0,0.5),0 0 60px rgba(201,168,76,0.08);
+  transform:translateY(20px);
+  transition:transform .25s;
+}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-header{
+  padding:22px 24px 16px;
+  border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-title{
+  font-family:var(--font-head);
+  font-size:18px;
+  font-weight:700;
+  color:var(--ivory);
+}
+.modal-close{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--slate);
+  border:1px solid var(--border2);
+  background:transparent;font-size:16px;
+  transition:all .18s;
+}
+.modal-close:hover{color:var(--ivory);border-color:var(--border)}
+.modal-body{padding:22px 24px}
+.modal-footer{
+  padding:16px 24px;
+  border-top:1px solid var(--border2);
+  display:flex;justify-content:flex-end;gap:10px;
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+.toast-container{
+  position:fixed;
+  bottom:24px;right:24px;
+  z-index:200;
+  display:flex;flex-direction:column;gap:8px;
+}
+.toast{
+  background:var(--surface);
+  border-radius:var(--radius);
+  padding:13px 18px;
+  display:flex;align-items:center;gap:12px;
+  font-size:13px;
+  font-weight:600;
+  border:1px solid var(--border2);
+  box-shadow:0 8px 32px rgba(0,0,0,0.3);
+  animation:slideIn .3s ease;
+  max-width:340px;
+  min-width:250px;
+}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
+.toast.hiding{animation:slideOut .3s ease forwards}
+.toast-icon{font-size:16px}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--red)}
+.toast.info{border-left:3px solid var(--gold)}
+.toast.warning{border-left:3px solid var(--orange)}
+.toast-msg{color:var(--ivory2)}
+
+/* ══════════════════════════════════════
+   MISC UTILITIES
+══════════════════════════════════════ */
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.section-title{
+  font-family:var(--font-head);
+  font-size:20px;
+  font-weight:700;
+  color:var(--ivory);
+}
+.section-sub{
+  font-size:12px;
+  color:var(--slate);
+  font-family:var(--font-mono);
+  margin-top:2px;
+}
+.divider{height:1px;background:var(--border2);margin:20px 0}
+.text-mono{font-family:var(--font-mono)}
+.text-gold{color:var(--gold2)}
+.text-green{color:var(--green)}
+.text-red{color:var(--red)}
+.text-slate{color:var(--slate)}
+.tag{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:4px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  font-weight:500;
+  letter-spacing:0.5px;
+}
+.tag-gold{background:rgba(201,168,76,0.15);color:var(--gold2);border:1px solid rgba(201,168,76,0.2)}
+.tag-navy{background:var(--navy2);color:var(--slate2);border:1px solid var(--border2)}
+
+.empty-state{
+  text-align:center;
+  padding:48px 24px;
+  color:var(--slate);
+}
+.empty-icon{font-size:36px;margin-bottom:12px;opacity:.4}
+.empty-text{font-size:14px;font-family:var(--font-mono)}
+
+/* Stepper for release flow */
+.stepper{display:flex;margin-bottom:28px;position:relative}
+.stepper::before{
+  content:'';
+  position:absolute;
+  top:16px;left:0;right:0;
+  height:1px;
+  background:var(--border2);
+  z-index:0;
+}
+.step{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  position:relative;z-index:1;
+}
+.step-circle{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--surface2);
+  border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;
+  font-family:var(--font-mono);
+  color:var(--slate);
+  margin-bottom:8px;
+  transition:all .3s;
+}
+.step.active .step-circle{
+  background:var(--gold);
+  border-color:var(--gold);
+  color:var(--navy);
+  font-weight:700;
+  box-shadow:0 0 16px rgba(201,168,76,0.4);
+}
+.step.done .step-circle{
+  background:var(--green);
+  border-color:var(--green);
+  color:var(--navy);
+}
+.step-label{
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--slate);
+  text-align:center;
+  white-space:nowrap;
+}
+.step.active .step-label{color:var(--gold2)}
+.step.done .step-label{color:var(--green)}
+
+/* Pool config bar */
+.config-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-bottom:20px;
+}
+.config-item{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:14px 16px;
+}
+.config-key{font-size:10px;color:var(--slate);font-family:var(--font-mono);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
+.config-val{font-size:16px;font-weight:700;font-family:var(--font-head);color:var(--ivory)}
+
+/* Responsive fallback */
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .dashboard-grid{grid-template-columns:1fr}
+  .release-grid{grid-template-columns:1fr}
+  .config-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+  .sidebar{display:none}
+  .page-content{padding:16px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ── Animated gold line at top ── */
+.topline{
+  height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),transparent);
+  background-size:200% 100%;
+  animation:shimmer 3s linear infinite;
+}
+@keyframes shimmer{0%{background-position:200%}100%{background-position:-200%}}
+
+/* Blockchain visual */
+.chain-viz{display:flex;align-items:center;gap:0;overflow-x:auto;padding:16px 0}
+.block-node{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  padding:10px 14px;
+  min-width:140px;
+  flex-shrink:0;
+  transition:all .2s;
+}
+.block-node:hover{border-color:var(--gold);transform:translateY(-2px)}
+.block-hash{font-family:var(--font-mono);font-size:10px;color:var(--gold3);margin-bottom:4px}
+.block-data{font-size:11px;color:var(--slate2)}
+.chain-link{
+  width:32px;height:2px;
+  background:linear-gradient(90deg,var(--border2),var(--gold),var(--border2));
+  flex-shrink:0;
+  position:relative;
+}
+.chain-link::before,.chain-link::after{
+  content:'';
+  position:absolute;
+  top:50%;transform:translateY(-50%);
+  width:6px;height:6px;border-radius:50%;
+  background:var(--gold);
+}
+.chain-link::before{left:-3px}
+.chain-link::after{right:-3px}
+
+/* ── Number counters ── */
+@keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.counter{animation:countUp .5s ease forwards}
+</style>
+</head>
+<body>
+
+<div class="topline"></div>
+
+<div class="app">
+  <!-- ═══════ SIDEBAR ═══════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon">🎓</div>
+        <div class="logo-text">MeritChain</div>
+      </div>
+      <div class="logo-sub">Soroban · Stellar</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Overview</div>
+        <div class="nav-item active" onclick="navigate('dashboard')">
+          <span class="nav-icon">◈</span> Dashboard
+        </div>
+        <div class="nav-item" onclick="navigate('analytics')">
+          <span class="nav-icon">◉</span> Analytics
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Management</div>
+        <div class="nav-item" onclick="navigate('students')">
+          <span class="nav-icon">👤</span> Students
+          <span class="nav-badge" id="nb-students">0</span>
+        </div>
+        <div class="nav-item" onclick="navigate('release')">
+          <span class="nav-icon">💸</span> Release Funds
+        </div>
+        <div class="nav-item" onclick="navigate('ledger')">
+          <span class="nav-icon">📋</span> Ledger
+          <span class="nav-badge" id="nb-ledger">0</span>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">System</div>
+        <div class="nav-item" onclick="navigate('contract')">
+          <span class="nav-icon">⛓</span> Contract
+        </div>
+        <div class="nav-item" onclick="navigate('settings')">
+          <span class="nav-icon">⚙</span> Settings
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="contract-status">
+        <div class="cs-label"><span class="cs-dot"></span>Live on Testnet</div>
+        <div class="cs-address" id="contractAddress">CDXXX...0000</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════ MAIN ═══════ -->
+  <main class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-breadcrumb" id="topbar-crumb">scholarchain / overview</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost btn-sm" onclick="refreshData()">⟳ Refresh</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('registerModal')">+ Register Student</button>
+      </div>
+    </div>
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Pool Locked</div>
+            <div class="stat-value gold" id="s-locked">₹0</div>
+            <div class="stat-change up" id="s-locked-sub">— initialised</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Disbursed</div>
+            <div class="stat-value green" id="s-disbursed">₹0</div>
+            <div class="stat-change" id="s-disbursed-pct">0% of pool</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Active Students</div>
+            <div class="stat-value" id="s-students">0</div>
+            <div class="stat-change up" id="s-students-sub">registered</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-value" id="s-available">₹0</div>
+            <div class="stat-change" id="s-avail-pct">100% available</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Pool Visualization -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Scholarship Pool</div>
+                <div class="card-subtitle">fund allocation · real-time</div>
+              </div>
+              <span class="tag tag-gold">LOCKED</span>
+            </div>
+            <div class="card-body">
+              <div class="pool-visual">
+                <div class="ring-wrap">
+                  <svg width="140" height="140" viewBox="0 0 140 140">
+                    <circle cx="70" cy="70" r="55" fill="none" stroke="rgba(201,168,76,0.08)" stroke-width="16"/>
+                    <circle id="ring-disbursed" cx="70" cy="70" r="55" fill="none"
+                      stroke="url(#ringGrad)" stroke-width="16"
+                      stroke-dasharray="345.4" stroke-dashoffset="345.4"
+                      stroke-linecap="round" style="transition:stroke-dashoffset 1s ease"/>
+                    <circle id="ring-withheld" cx="70" cy="70" r="55" fill="none"
+                      stroke="#e05c5c" stroke-width="16" stroke-dasharray="0 345.4"
+                      stroke-linecap="round" style="transition:all 1s ease"/>
+                    <defs>
+                      <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#c9a84c"/>
+                        <stop offset="100%" stop-color="#2ecc8a"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div class="ring-center">
+                    <div class="ring-pct" id="ring-pct">0%</div>
+                    <div class="ring-lbl">released</div>
+                  </div>
+                </div>
+                <div class="pool-legend">
+                  <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--gold)"></div>
+                    <div class="legend-info">
+                      <div class="legend-name">Available</div>
+                      <div class="legend-val" id="l-available">₹10,00,000</div>
+                    </div>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--green)"></div>
+                    <div class="legend-info">
+                      <div class="legend-name">Disbursed</div>
+                      <div class="legend-val" id="l-disbursed">₹0</div>
+                    </div>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-dot" style="background:var(--navy2);border:1px solid var(--border)"></div>
+                    <div class="legend-info">
+                      <div class="legend-name">Withheld</div>
+                      <div class="legend-val" id="l-withheld">₹0</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <div style="display:flex;gap:8px;margin-bottom:6px;justify-content:space-between">
+                <span style="font-size:11px;color:var(--slate);font-family:var(--font-mono)">DISBURSEMENTS BY SEMESTER</span>
+                <span style="font-size:11px;color:var(--slate);font-family:var(--font-mono)">×₹1L</span>
+              </div>
+              <div class="bar-chart" id="semChart"></div>
+              <div id="semLabels" style="display:flex;gap:6px"></div>
+            </div>
+          </div>
+
+          <!-- Activity feed -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Activity Feed</div>
+                <div class="card-subtitle">real-time contract events</div>
+              </div>
+              <span class="tag tag-navy" id="activity-count">0 events</span>
+            </div>
+            <div class="card-body" style="padding:0 22px">
+              <div class="activity-list" id="activityList">
+                <div class="empty-state">
+                  <div class="empty-icon">📭</div>
+                  <div class="empty-text">No activity yet</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blockchain chain viz -->
+        <div class="card" style="margin-top:20px">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Transaction Chain</div>
+              <div class="card-subtitle">immutable disbursement ledger</div>
+            </div>
+          </div>
+          <div class="card-body" style="padding:16px 22px">
+            <div class="chain-viz" id="chainViz">
+              <div class="block-node">
+                <div class="block-hash">GENESIS #0000</div>
+                <div class="block-data">Contract Deployed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ANALYTICS ═══ -->
+    <div class="page" id="page-analytics">
+      <div class="page-content">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Analytics</div>
+            <div class="section-sub">Performance metrics and fund flow analysis</div>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Avg GPA (Active)</div>
+            <div class="stat-value gold" id="a-avgGpa">—</div>
+            <div class="stat-change">across all students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Disbursement Rate</div>
+            <div class="stat-value green" id="a-disRate">0%</div>
+            <div class="stat-change">approved vs attempts</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Withheld Count</div>
+            <div class="stat-value" style="color:var(--red)" id="a-withheld">0</div>
+            <div class="stat-change">GPA gate failures</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Semesters Active</div>
+            <div class="stat-value" id="a-semActive">0</div>
+            <div class="stat-change">total across students</div>
+          </div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">GPA Distribution</div>
+            </div>
+            <div class="card-body">
+              <div id="gpaDistChart" style="display:flex;gap:8px;align-items:flex-end;height:120px"></div>
+              <div id="gpaDistLabels" style="display:flex;gap:8px;margin-top:6px"></div>
+              <div class="divider"></div>
+              <div style="font-size:12px;color:var(--slate);font-family:var(--font-mono)">
+                MIN REQUIRED: <span style="color:var(--gold2)">2.50 GPA</span> &nbsp;|&nbsp;
+                SCHOLARSHIP GATE
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Student Status Breakdown</div>
+            </div>
+            <div class="card-body" id="statusBreakdown">
+              <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <div class="empty-text">Register students to see breakdown</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px">
+          <div class="card-header">
+            <div class="card-title">Per-Student Fund Summary</div>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>GPA</th>
+                    <th>Semester</th>
+                    <th>Total Received</th>
+                    <th>Remaining Eligibility</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="analyticsTable"><tr><td colspan="6"><div class="empty-state"><div class="empty-text">No data</div></div></td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ STUDENTS ═══ -->
+    <div class="page" id="page-students">
+      <div class="page-content">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Student Registry</div>
+            <div class="section-sub">manage scholarship recipients</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="search-input" placeholder="🔍  Search students..." id="studentSearch" oninput="renderStudents()"/>
+            <button class="btn btn-primary" onclick="openModal('registerModal')">+ Register</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>GPA</th>
+                  <th>Semester Progress</th>
+                  <th>Total Received</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentsTable">
+                <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🎓</div><div class="empty-text">No students registered yet</div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RELEASE FUNDS ═══ -->
+    <div class="page" id="page-release">
+      <div class="page-content">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Release Scholarship Funds</div>
+            <div class="section-sub">conditional disbursement with 6-gate verification</div>
+          </div>
+        </div>
+
+        <div class="stepper" id="releaseStepper">
+          <div class="step active" id="step-1"><div class="step-circle">1</div><div class="step-label">Select Student</div></div>
+          <div class="step" id="step-2"><div class="step-circle">2</div><div class="step-label">Verify Gates</div></div>
+          <div class="step" id="step-3"><div class="step-circle">3</div><div class="step-label">Confirm</div></div>
+          <div class="step" id="step-4"><div class="step-circle">4</div><div class="step-label">Released</div></div>
+        </div>
+
+        <div class="release-grid">
+          <div>
+            <!-- Step 1: Student select -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header">
+                <div class="card-title">Select Student</div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="form-label">Student</label>
+                  <select class="form-input form-select" id="releaseStudent" onchange="onStudentSelect()">
+                    <option value="">— choose a student —</option>
+                  </select>
+                </div>
+                <div id="studentPreview" style="display:none">
+                  <div class="config-grid" style="grid-template-columns:1fr 1fr;margin-bottom:0">
+                    <div class="config-item">
+                      <div class="config-key">Current Semester</div>
+                      <div class="config-val" id="prev-sem">—</div>
+                    </div>
+                    <div class="config-item">
+                      <div class="config-key">GPA (scaled)</div>
+                      <div class="config-val" id="prev-gpa">—</div>
+                    </div>
+                    <div class="config-item">
+                      <div class="config-key">Total Received</div>
+                      <div class="config-val" id="prev-rcv">—</div>
+                    </div>
+                    <div class="config-item">
+                      <div class="config-key">Status</div>
+                      <div class="config-val" id="prev-status">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pool config -->
+            <div class="card">
+              <div class="card-header"><div class="card-title">Pool Configuration</div></div>
+              <div class="card-body">
+                <div class="config-grid" style="margin-bottom:0">
+                  <div class="config-item">
+                    <div class="config-key">Per Semester</div>
+                    <div class="config-val" id="cfg-perSem">₹1,00,000</div>
+                  </div>
+                  <div class="config-item">
+                    <div class="config-key">Min GPA</div>
+                    <div class="config-val" id="cfg-minGpa">2.50</div>
+                  </div>
+                  <div class="config-item">
+                    <div class="config-key">Available</div>
+                    <div class="config-val text-green" id="cfg-avail">₹10,00,000</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <!-- Gates display -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header">
+                <div class="card-title">Verification Gates</div>
+                <span class="tag tag-navy">6 CHECKS</span>
+              </div>
+              <div class="card-body" style="padding:8px 22px">
+                <div id="gatesDisplay">
+                  <div class="gate-row" id="gate-1">
+                    <div class="gate-icon pending">?</div>
+                    <div class="gate-name">Student Exists</div>
+                    <div class="gate-result pending" id="gr-1">—</div>
+                  </div>
+                  <div class="gate-row" id="gate-2">
+                    <div class="gate-icon pending">?</div>
+                    <div class="gate-name">Student Active</div>
+                    <div class="gate-result pending" id="gr-2">—</div>
+                  </div>
+                  <div class="gate-row" id="gate-3">
+                    <div class="gate-icon pending">?</div>
+                    <div class="gate-name">Semester Limit</div>
+                    <div class="gate-result pending" id="gr-3">—</div>
+                  </div>
+                  <div class="gate-row" id="gate-4">
+                    <div class="gate-icon pending">?</div>
+                    <div class="gate-name">Performance GPA</div>
+                    <div class="gate-result pending" id="gr-4">—</div>
+                  </div>
+                  <div class="gate-row" id="gate-5">
+                    <div class="gate-icon pending">?</div>
+                    <div class="gate-name">No Duplicate</div>
+                    <div class="gate-result pending" id="gr-5">—</div>
+                  </div>
+                  <div class="gate-row" id="gate-6">
+                    <div class="gate-icon pending">?</div>
+                    <div class="gate-name">Pool Solvency</div>
+                    <div class="gate-result pending" id="gr-6">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px"
+              id="releaseFundsBtn" onclick="executeFundRelease()" disabled>
+              💸 Release Funds
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ LEDGER ═══ -->
+    <div class="page" id="page-ledger">
+      <div class="page-content">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Disbursement Ledger</div>
+            <div class="section-sub">immutable on-chain transaction history</div>
+          </div>
+        </div>
+        <div class="ledger-filters">
+          <select class="filter-select" id="ledgerFilter" onchange="renderLedger()">
+            <option value="all">All Transactions</option>
+            <option value="Released">Released</option>
+            <option value="Withheld">Withheld</option>
+          </select>
+          <select class="filter-select" id="ledgerStudent" onchange="renderLedger()">
+            <option value="all">All Students</option>
+          </select>
+          <input type="text" class="search-input" placeholder="🔍  Search..." id="ledgerSearch" oninput="renderLedger()"/>
+          <span style="margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--slate)">
+            <span id="ledgerCount">0</span> records
+          </span>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>TX Hash</th>
+                  <th>Student</th>
+                  <th>Semester</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Reason</th>
+                  <th>Block</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerTable">
+                <tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No transactions yet</div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CONTRACT ═══ -->
+    <div class="page" id="page-contract">
+      <div class="page-content">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Smart Contract</div>
+            <div class="section-sub">Soroban · Stellar Testnet</div>
+          </div>
+          <span class="tag tag-gold">DEPLOYED</span>
+        </div>
+        <div class="config-grid" style="margin-bottom:20px">
+          <div class="config-item">
+            <div class="config-key">Contract Address</div>
+            <div class="config-val text-mono" style="font-size:12px" id="cc-addr">CDXXX...0000</div>
+          </div>
+          <div class="config-item">
+            <div class="config-key">Network</div>
+            <div class="config-val">Testnet</div>
+          </div>
+          <div class="config-item">
+            <div class="config-key">Admin</div>
+            <div class="config-val text-mono" style="font-size:12px">GAXX...ADMIN</div>
+          </div>
+          <div class="config-item">
+            <div class="config-key">Language</div>
+            <div class="config-val">Rust / Soroban SDK</div>
+          </div>
+          <div class="config-item">
+            <div class="config-key">Max Semesters</div>
+            <div class="config-val" id="cc-maxSem">8</div>
+          </div>
+          <div class="config-item">
+            <div class="config-key">Min GPA</div>
+            <div class="config-val" id="cc-minGpa">2.50</div>
+          </div>
+        </div>
+        <div class="contract-panel">
+          <div class="contract-tabs">
+            <div class="contract-tab active" onclick="switchContractTab(this,'src')">Source Code</div>
+            <div class="contract-tab" onclick="switchContractTab(this,'abi')">ABI / Methods</div>
+            <div class="contract-tab" onclick="switchContractTab(this,'storage')">Storage Layout</div>
+          </div>
+          <div id="ct-src" class="code-block">
+<pre><span class="cm">// ═══════════════════════════════════════════════</span>
+<span class="cm">// Student Scholarship Disbursement — Soroban</span>
+<span class="cm">// ═══════════════════════════════════════════════</span>
+<span class="kw">#![no_std]</span>
+
+<span class="kw">use</span> <span class="ty">soroban_sdk</span>::{
+    <span class="fn">contract</span>, <span class="fn">contractimpl</span>, <span class="fn">contracttype</span>,
+    <span class="ty">Address</span>, <span class="ty">Env</span>,
+};
+
+<span class="kw">#[contracttype]</span>
+<span class="kw">pub enum</span> <span class="ty">DataKey</span> {
+    <span class="ty">Admin</span>,
+    <span class="ty">PoolLocked</span>,
+    <span class="ty">PoolDisbursed</span>,
+    <span class="ty">PerSemesterAmt</span>,
+    <span class="ty">MinGpaScaled</span>,     <span class="cm">// ×100 e.g. 250 = 2.50</span>
+    <span class="ty">MaxSemesters</span>,
+    <span class="ty">Student</span>(<span class="ty">u64</span>),
+    <span class="ty">Disbursed</span>(<span class="ty">u64</span>, <span class="ty">u32</span>),
+}
+
+<span class="kw">#[contracttype]</span>
+<span class="kw">pub struct</span> <span class="ty">Student</span> {
+    <span class="kw">pub</span> id:               <span class="ty">u64</span>,
+    <span class="kw">pub</span> gpa_scaled:       <span class="ty">u32</span>,
+    <span class="kw">pub</span> current_semester: <span class="ty">u32</span>,
+    <span class="kw">pub</span> total_semesters:  <span class="ty">u32</span>,
+    <span class="kw">pub</span> is_active:        <span class="ty">bool</span>,
+    <span class="kw">pub</span> total_received:   <span class="ty">u64</span>,
+}
+
+<span class="kw">#[contract]</span>
+<span class="kw">pub struct</span> <span class="ty">ScholarshipContract</span>;
+
+<span class="kw">#[contractimpl]</span>
+<span class="kw">impl</span> <span class="ty">ScholarshipContract</span> {
+
+  <span class="kw">pub fn</span> <span class="fn">release_funds</span>(
+      env: <span class="ty">Env</span>,
+      caller: <span class="ty">Address</span>,
+      student_id: <span class="ty">u64</span>,
+  ) -> <span class="ty">u64</span> {
+      caller.<span class="fn">require_auth</span>();
+      <span class="ty">Self</span>::<span class="fn">assert_admin</span>(&amp;env, &amp;caller);
+
+      <span class="kw">let mut</span> student: <span class="ty">Student</span> =
+          env.storage().persistent()
+             .<span class="fn">get</span>(&amp;<span class="ty">DataKey</span>::<span class="fn">Student</span>(student_id))
+             .<span class="fn">expect</span>(<span class="st">"student not found"</span>);
+
+      <span class="cm">// ── Gate 1: active ──</span>
+      <span class="kw">if</span> !student.is_active {
+          <span class="kw">panic!</span>(<span class="st">"student is not active"</span>);
+      }
+
+      <span class="cm">// ── Gate 2: semester limit ──</span>
+      <span class="kw">let</span> next_sem = student.current_semester + <span class="nu">1</span>;
+      <span class="kw">let</span> max: <span class="ty">u32</span> = env.storage().instance()
+          .<span class="fn">get</span>(&amp;<span class="ty">DataKey</span>::<span class="ty">MaxSemesters</span>).<span class="fn">unwrap</span>();
+      <span class="kw">if</span> next_sem > max { <span class="kw">panic!</span>(<span class="st">"semester limit exceeded"</span>); }
+
+      <span class="cm">// ── Gate 3: performance ──</span>
+      <span class="kw">let</span> min_gpa: <span class="ty">u32</span> = env.storage().instance()
+          .<span class="fn">get</span>(&amp;<span class="ty">DataKey</span>::<span class="ty">MinGpaScaled</span>).<span class="fn">unwrap</span>();
+      <span class="kw">if</span> student.current_semester > <span class="nu">0</span>
+          &amp;&amp; student.gpa_scaled &lt; min_gpa
+      {
+          <span class="kw">panic!</span>(<span class="st">"gpa below threshold"</span>);
+      }
+
+      <span class="cm">// ── Gate 4: duplicate guard ──</span>
+      <span class="kw">let</span> dis_key = <span class="ty">DataKey</span>::<span class="fn">Disbursed</span>(student_id, next_sem);
+      <span class="kw">if</span> env.storage().persistent().<span class="fn">has</span>(&amp;dis_key) {
+          <span class="kw">panic!</span>(<span class="st">"already disbursed"</span>);
+      }
+
+      <span class="cm">// ── Gate 5: solvency ──</span>
+      <span class="kw">let</span> locked: <span class="ty">u64</span> = env.storage().instance()
+          .<span class="fn">get</span>(&amp;<span class="ty">DataKey</span>::<span class="ty">PoolLocked</span>).<span class="fn">unwrap</span>();
+      <span class="kw">let</span> disbursed: <span class="ty">u64</span> = env.storage().instance()
+          .<span class="fn">get</span>(&amp;<span class="ty">DataKey</span>::<span class="ty">PoolDisbursed</span>).<span class="fn">unwrap</span>();
+      <span class="kw">let</span> amount: <span class="ty">u64</span> = env.storage().instance()
+          .<span class="fn">get</span>(&amp;<span class="ty">DataKey</span>::<span class="ty">PerSemesterAmt</span>).<span class="fn">unwrap</span>();
+
+      <span class="kw">if</span> locked &lt; disbursed + amount {
+          <span class="kw">panic!</span>(<span class="st">"insufficient funds"</span>);
+      }
+
+      <span class="cm">// ── Release ──</span>
+      env.storage().instance()
+         .<span class="fn">set</span>(&amp;<span class="ty">DataKey</span>::<span class="ty">PoolDisbursed</span>, &amp;(disbursed + amount));
+      env.storage().persistent()
+         .<span class="fn">set</span>(&amp;dis_key, &amp;<span class="kw">true</span>);
+
+      student.current_semester = next_sem;
+      student.total_received  += amount;
+      env.storage().persistent()
+         .<span class="fn">set</span>(&amp;<span class="ty">DataKey</span>::<span class="fn">Student</span>(student_id), &amp;student);
+
+      amount
+  }
+}</pre>
+          </div>
+          <div id="ct-abi" class="code-block" style="display:none">
+<pre><span class="cm">// ── Public Methods ──────────────────────────</span>
+
+<span class="fn">initialize</span>(
+    env: <span class="ty">Env</span>,
+    admin: <span class="ty">Address</span>,
+    total_funds: <span class="ty">u64</span>,
+    per_semester_amount: <span class="ty">u64</span>,
+    min_gpa_scaled: <span class="ty">u32</span>,   <span class="cm">// e.g. 250 = GPA 2.50</span>
+    max_semesters: <span class="ty">u32</span>,
+) -> <span class="ty">()</span>
+
+<span class="fn">register_student</span>(
+    env: <span class="ty">Env</span>,
+    caller: <span class="ty">Address</span>,   <span class="cm">// must be admin</span>
+    student_id: <span class="ty">u64</span>,
+    total_semesters: <span class="ty">u32</span>,
+) -> <span class="ty">()</span>
+
+<span class="fn">update_gpa</span>(
+    env: <span class="ty">Env</span>,
+    caller: <span class="ty">Address</span>,
+    student_id: <span class="ty">u64</span>,
+    gpa_scaled: <span class="ty">u32</span>,    <span class="cm">// 0–400</span>
+) -> <span class="ty">()</span>
+
+<span class="fn">set_active</span>(
+    env: <span class="ty">Env</span>,
+    caller: <span class="ty">Address</span>,
+    student_id: <span class="ty">u64</span>,
+    active: <span class="ty">bool</span>,
+) -> <span class="ty">()</span>
+
+<span class="fn">release_funds</span>(
+    env: <span class="ty">Env</span>,
+    caller: <span class="ty">Address</span>,
+    student_id: <span class="ty">u64</span>,
+) -> <span class="ty">u64</span>   <span class="cm">// returns amount released</span>
+
+<span class="fn">available_balance</span>(env: <span class="ty">Env</span>) -> <span class="ty">u64</span>
+
+<span class="fn">get_student</span>(env: <span class="ty">Env</span>, student_id: <span class="ty">u64</span>) -> <span class="ty">Student</span>
+
+<span class="fn">is_disbursed</span>(
+    env: <span class="ty">Env</span>,
+    student_id: <span class="ty">u64</span>,
+    semester: <span class="ty">u32</span>,
+) -> <span class="ty">bool</span></pre>
+          </div>
+          <div id="ct-storage" class="code-block" style="display:none">
+<pre><span class="cm">// ── Storage Layout ──────────────────────────</span>
+<span class="cm">//</span>
+<span class="cm">// Instance Storage (contract-level config)</span>
+<span class="cm">// ─────────────────────────────────────────</span>
+<span class="ty">DataKey</span>::<span class="ty">Admin</span>          →  <span class="ty">Address</span>
+<span class="ty">DataKey</span>::<span class="ty">PoolLocked</span>     →  <span class="ty">u64</span>     <span class="cm">// total funds deposited</span>
+<span class="ty">DataKey</span>::<span class="ty">PoolDisbursed</span>  →  <span class="ty">u64</span>     <span class="cm">// running total released</span>
+<span class="ty">DataKey</span>::<span class="ty">PerSemesterAmt</span> →  <span class="ty">u64</span>     <span class="cm">// base release per semester</span>
+<span class="ty">DataKey</span>::<span class="ty">MinGpaScaled</span>   →  <span class="ty">u32</span>     <span class="cm">// e.g. 250 = 2.50</span>
+<span class="ty">DataKey</span>::<span class="ty">MaxSemesters</span>   →  <span class="ty">u32</span>     <span class="cm">// global cap</span>
+
+<span class="cm">//</span>
+<span class="cm">// Persistent Storage (per-entity, survives ledger TTL)</span>
+<span class="cm">// ────────────────────────────────────────────────────</span>
+<span class="ty">DataKey</span>::<span class="fn">Student</span>(<span class="ty">id</span>)         →  <span class="ty">Student</span> {
+    id: <span class="ty">u64</span>,
+    gpa_scaled: <span class="ty">u32</span>,
+    current_semester: <span class="ty">u32</span>,
+    total_semesters: <span class="ty">u32</span>,
+    is_active: <span class="ty">bool</span>,
+    total_received: <span class="ty">u64</span>,
+}
+<span class="ty">DataKey</span>::<span class="fn">Disbursed</span>(<span class="ty">id</span>, <span class="ty">sem</span>)  →  <span class="ty">bool</span>  <span class="cm">// idempotency guard</span>
+
+<span class="cm">//</span>
+<span class="cm">// GPA Scaling Convention</span>
+<span class="cm">// ─────────────────────</span>
+<span class="cm">// All GPAs stored as integers × 100</span>
+<span class="cm">// 0.00 GPA  →  0</span>
+<span class="cm">// 2.50 GPA  →  250   (minimum threshold)</span>
+<span class="cm">// 3.75 GPA  →  375</span>
+<span class="cm">// 4.00 GPA  →  400   (maximum)</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div class="page" id="page-settings">
+      <div class="page-content">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Pool Settings</div>
+            <div class="section-sub">configure the scholarship contract parameters</div>
+          </div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Contract Parameters</div></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Total Pool Amount (₹)</label>
+                <input type="number" class="form-input" id="set-pool" value="1000000" min="100000"/>
+                <div class="form-hint">Total funds locked in the scholarship contract</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Per Semester Amount (₹)</label>
+                <input type="number" class="form-input" id="set-perSem" value="100000" min="10000"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Minimum GPA Required (×100)</label>
+                <input type="number" class="form-input" id="set-minGpa" value="250" min="0" max="400"/>
+                <div class="form-hint">250 = GPA 2.50 · 300 = GPA 3.00</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Maximum Semesters</label>
+                <input type="number" class="form-input" id="set-maxSem" value="8" min="1" max="20"/>
+              </div>
+              <button class="btn btn-primary" onclick="applySettings()">Apply & Redeploy</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Danger Zone</div></div>
+            <div class="card-body">
+              <p style="font-size:13px;color:var(--slate2);margin-bottom:16px;line-height:1.6">
+                These actions are irreversible on-chain. In this simulation they reset the contract state.
+              </p>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <button class="btn btn-danger" onclick="resetAllStudents()">🗑 Reset All Students</button>
+                <button class="btn btn-danger" onclick="resetLedger()">🗑 Clear Ledger</button>
+                <button class="btn btn-danger" onclick="fullReset()">⚠ Full Contract Reset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Register Student -->
+<div class="modal-overlay" id="registerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Register New Student</div>
+      <button class="modal-close" onclick="closeModal('registerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Student Name</label>
+        <input type="text" class="form-input" id="reg-name" placeholder="e.g. Arjun Mehta"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Student ID</label>
+        <input type="number" class="form-input" id="reg-id" placeholder="e.g. 1001" min="1"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Total Semesters</label>
+        <input type="number" class="form-input" id="reg-sems" value="8" min="1" max="20"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Initial GPA (×100)</label>
+        <input type="number" class="form-input" id="reg-gpa" value="0" min="0" max="400"/>
+        <div class="form-hint">Leave 0 for first semester — no GPA gate applies</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('registerModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="registerStudent()">Register on Chain</button>
+    </div>
+  </div>
+</div>
+
+<!-- Update GPA -->
+<div class="modal-overlay" id="gpaModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Update GPA</div>
+      <button class="modal-close" onclick="closeModal('gpaModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="gpa-studentId"/>
+      <div style="margin-bottom:16px;padding:14px;background:var(--navy2);border-radius:var(--radius);border:1px solid var(--border2)">
+        <div style="font-size:11px;color:var(--slate);font-family:var(--font-mono);margin-bottom:4px">STUDENT</div>
+        <div style="font-family:var(--font-head);font-size:16px;color:var(--ivory)" id="gpa-studentName">—</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">New GPA (×100)</label>
+        <input type="number" class="form-input" id="gpa-value" min="0" max="400" placeholder="e.g. 350 for 3.50"/>
+        <div class="form-hint">Range: 0–400 · Min required: <span id="gpa-minRequired">250</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('gpaModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateGpa()">Update GPA</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══════════════════════════════════════════════
+     BACKEND SIMULATION — Smart Contract in JS
+═══════════════════════════════════════════════ -->
+<script>
+// ════════════════════════════════════════
+//  Contract State (mirrors Soroban storage)
+// ════════════════════════════════════════
+let CONTRACT = {
+  admin: 'GAXX...ADMIN',
+  address: 'CDSC' + Math.random().toString(36).substr(2,8).toUpperCase() + '...SRBN',
+  pool: {
+    total_locked:      1_000_000,
+    total_disbursed:   0,
+    per_semester_amt:  100_000,
+    min_gpa_scaled:    250,
+    max_semesters:     8,
+  },
+  students: {},       // id → Student
+  disbursed: {},      // `${id}_${sem}` → true
+  ledger: [],         // DisbursementRecord[]
+  activity: [],       // ActivityEvent[]
+  clock: 1_000_000,
+};
+
+// ════════════════════════════════════════
+//  Contract Methods (Rust logic in JS)
+// ════════════════════════════════════════
+
+function contract_register(id, name, totalSems, gpaScaled) {
+  if (CONTRACT.students[id]) throw new Error('student already registered');
+  CONTRACT.students[id] = {
+    id, name,
+    gpa_scaled: gpaScaled || 0,
+    current_semester: 0,
+    total_semesters: totalSems,
+    is_active: true,
+    total_received: 0,
+  };
+  addActivity('registered', `<strong>${name}</strong> (ID: ${id}) registered for ${totalSems} semesters`);
+  return true;
+}
+
+function contract_update_gpa(id, gpaScaled) {
+  if (gpaScaled > 400) throw new Error('gpa must be ≤ 400 scaled');
+  const s = getStudent(id);
+  s.gpa_scaled = gpaScaled;
+  addActivity('registered', `GPA updated for <strong>${s.name}</strong>: ${(gpaScaled/100).toFixed(2)}`);
+}
+
+function contract_set_active(id, active) {
+  const s = getStudent(id);
+  s.is_active = active;
+  addActivity(active ? 'registered' : 'withheld',
+    `<strong>${s.name}</strong> status → ${active ? 'Active' : 'Suspended'}`);
+}
+
+function contract_release_funds(id) {
+  const s = getStudent(id);
+  const p = CONTRACT.pool;
+
+  // Gate 1: exists (already checked above)
+  // Gate 2: active
+  if (!s.is_active) throw new Error('student is not active');
+  // Gate 3: semester limit
+  const nextSem = s.current_semester + 1;
+  if (nextSem > p.max_semesters || nextSem > s.total_semesters)
+    throw new Error('semester limit exceeded');
+  // Gate 4: performance (skip semester 1)
+  if (s.current_semester > 0 && s.gpa_scaled < p.min_gpa_scaled)
+    throw new Error(`gpa below threshold (${(s.gpa_scaled/100).toFixed(2)} < ${(p.min_gpa_scaled/100).toFixed(2)})`);
+  // Gate 5: duplicate
+  const dk = `${id}_${nextSem}`;
+  if (CONTRACT.disbursed[dk]) throw new Error('already disbursed for this semester');
+  // Gate 6: solvency
+  if (p.total_locked < p.total_disbursed + p.per_semester_amt)
+    throw new Error('insufficient funds in pool');
+
+  // ── Release ──
+  p.total_disbursed += p.per_semester_amt;
+  CONTRACT.disbursed[dk] = true;
+  s.current_semester = nextSem;
+  s.total_received += p.per_semester_amt;
+
+  CONTRACT.clock++;
+  const txHash = 'TX' + CONTRACT.clock.toString(16).toUpperCase().padStart(8,'0');
+  CONTRACT.ledger.push({
+    txHash, studentId: id, studentName: s.name,
+    semester: nextSem, amount: p.per_semester_amt,
+    status: 'Released',
+    reason: `Semester ${nextSem} disbursement approved`,
+    block: CONTRACT.clock,
+  });
+  addActivity('released',
+    `<strong>₹${fmt(p.per_semester_amt)}</strong> released to <strong>${s.name}</strong> — Sem ${nextSem}`);
+  return p.per_semester_amt;
+}
+
+function contract_record_withheld(id, sem, reason) {
+  CONTRACT.clock++;
+  const s = CONTRACT.students[id];
+  const txHash = 'WH' + CONTRACT.clock.toString(16).toUpperCase().padStart(8,'0');
+  CONTRACT.ledger.push({
+    txHash, studentId: id, studentName: s ? s.name : '?',
+    semester: sem, amount: 0,
+    status: 'Withheld', reason, block: CONTRACT.clock,
+  });
+  addActivity('withheld', `Funds withheld for <strong>${s ? s.name : id}</strong>: ${reason}`);
+}
+
+function getStudent(id) {
+  if (!CONTRACT.students[id]) throw new Error('student not found');
+  return CONTRACT.students[id];
+}
+
+function addActivity(type, text) {
+  CONTRACT.activity.unshift({ type, text, time: new Date().toLocaleTimeString() });
+  if (CONTRACT.activity.length > 50) CONTRACT.activity.pop();
+}
+
+// ════════════════════════════════════════
+//  UI State
+// ════════════════════════════════════════
+let currentPage = 'dashboard';
+
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(`'${page}'`))
+      n.classList.add('active');
+  });
+  currentPage = page;
+  const titles = {
+    dashboard:'Dashboard',analytics:'Analytics',students:'Student Registry',
+    release:'Release Funds',ledger:'Disbursement Ledger',
+    contract:'Smart Contract',settings:'Settings'
+  };
+  const crumbs = {
+    dashboard:'scholarchain / overview',analytics:'scholarchain / analytics',
+    students:'scholarchain / students',release:'scholarchain / release-funds',
+    ledger:'scholarchain / ledger',contract:'scholarchain / contract',
+    settings:'scholarchain / settings'
+  };
+  document.getElementById('topbar-title').textContent = titles[page] || page;
+  document.getElementById('topbar-crumb').textContent = crumbs[page] || '';
+
+  if (page === 'students') renderStudents();
+  if (page === 'ledger') { renderLedger(); populateLedgerStudentFilter(); }
+  if (page === 'release') { populateReleaseDropdown(); resetGates(); }
+  if (page === 'analytics') renderAnalytics();
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'contract') {
+    document.getElementById('cc-addr').textContent = CONTRACT.address;
+    document.getElementById('cc-maxSem').textContent = CONTRACT.pool.max_semesters;
+    document.getElementById('cc-minGpa').textContent = (CONTRACT.pool.min_gpa_scaled/100).toFixed(2);
+  }
+}
+
+// ════════════════════════════════════════
+//  Render — Dashboard
+// ════════════════════════════════════════
+function renderDashboard() {
+  const p = CONTRACT.pool;
+  const students = Object.values(CONTRACT.students);
+  const active = students.filter(s => s.is_active).length;
+  const pct = p.total_locked > 0 ? Math.round(p.total_disbursed/p.total_locked*100) : 0;
+
+  // Stats
+  el('s-locked').textContent = '₹'+fmt(p.total_locked);
+  el('s-disbursed').textContent = '₹'+fmt(p.total_disbursed);
+  el('s-disbursed-pct').textContent = pct+'% of pool disbursed';
+  el('s-students').textContent = students.length;
+  el('s-students-sub').textContent = active+' active';
+  el('s-available').textContent = '₹'+fmt(p.total_locked - p.total_disbursed);
+  el('s-avail-pct').textContent = (100-pct)+'% remaining';
+  el('nb-students').textContent = students.length;
+  el('nb-ledger').textContent = CONTRACT.ledger.length;
+
+  // Ring
+  const circumference = 345.4;
+  const offset = circumference - (pct/100)*circumference;
+  const ring = document.getElementById('ring-disbursed');
+  ring.style.strokeDashoffset = offset;
+  el('ring-pct').textContent = pct+'%';
+  el('l-available').textContent = '₹'+fmt(p.total_locked - p.total_disbursed);
+  el('l-disbursed').textContent = '₹'+fmt(p.total_disbursed);
+
+  // Semester bar chart
+  const semData = {};
+  CONTRACT.ledger.filter(r=>r.status==='Released').forEach(r => {
+    semData[r.semester] = (semData[r.semester]||0) + r.amount;
+  });
+  const maxAmt = Math.max(...Object.values(semData), 1);
+  const maxSem = CONTRACT.pool.max_semesters;
+  const chartEl = el('semChart');
+  const labelsEl = el('semLabels');
+  chartEl.innerHTML = '';
+  labelsEl.innerHTML = '';
+  for (let i=1; i<=maxSem; i++) {
+    const amt = semData[i] || 0;
+    const h = Math.max((amt/maxAmt)*80, 4);
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = h+'px';
+    if (amt > 0) bar.style.background = 'rgba(46,204,138,0.3)';
+    bar.title = `Sem ${i}: ₹${fmt(amt)}`;
+    chartEl.appendChild(bar);
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-label';
+    lbl.textContent = 'S'+i;
+    labelsEl.appendChild(lbl);
+  }
+  labelsEl.style.display = 'flex';
+  labelsEl.style.gap = '6px';
+
+  // Activity
+  const actEl = el('activityList');
+  if (CONTRACT.activity.length === 0) {
+    actEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No activity yet</div></div>';
+  } else {
+    actEl.innerHTML = CONTRACT.activity.slice(0,15).map(a => `
+      <div class="activity-item">
+        <div class="activity-dot ${a.type}"></div>
+        <div class="activity-text">${a.text}</div>
+        <div class="activity-time">${a.time}</div>
+      </div>`).join('');
+  }
+  el('activity-count').textContent = CONTRACT.activity.length+' events';
+
+  // Chain viz
+  const chain = el('chainViz');
+  const txs = CONTRACT.ledger.slice(-5);
+  const extraNodes = txs.map(tx => `
+    <div class="chain-link"></div>
+    <div class="block-node">
+      <div class="block-hash">${tx.txHash}</div>
+      <div class="block-data">${tx.studentName} · Sem${tx.semester}</div>
+    </div>`).join('');
+  chain.innerHTML = `<div class="block-node"><div class="block-hash">GENESIS #0000</div><div class="block-data">Contract Deployed</div></div>` + extraNodes;
+
+  // Config display
+  el('cfg-perSem').textContent = '₹'+fmt(CONTRACT.pool.per_semester_amt);
+  el('cfg-minGpa').textContent = (CONTRACT.pool.min_gpa_scaled/100).toFixed(2);
+  el('cfg-avail').textContent = '₹'+fmt(CONTRACT.pool.total_locked - CONTRACT.pool.total_disbursed);
+  el('contractAddress').textContent = CONTRACT.address;
+}
+
+// ════════════════════════════════════════
+//  Render — Students
+// ════════════════════════════════════════
+function renderStudents() {
+  const q = (el('studentSearch')||{value:''}).value.toLowerCase();
+  const students = Object.values(CONTRACT.students)
+    .filter(s => !q || s.name.toLowerCase().includes(q) || String(s.id).includes(q));
+  const tbody = el('studentsTable');
+  if (students.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🎓</div><div class="empty-text">No students registered yet</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = students.map(s => {
+    const gpa = (s.gpa_scaled/100).toFixed(2);
+    const gpaColor = s.gpa_scaled >= CONTRACT.pool.min_gpa_scaled ? 'var(--green)' : s.gpa_scaled > 0 ? 'var(--red)' : 'var(--slate)';
+    const dots = Array.from({length:s.total_semesters},(_,i) => {
+      let cls = 'sem-dot';
+      if (i < s.current_semester) cls += ' done';
+      else if (i === s.current_semester) cls += ' current';
+      return `<div class="${cls}" title="Sem ${i+1}"></div>`;
+    }).join('');
+    const badge = s.is_active
+      ? '<span class="badge badge-active">● Active</span>'
+      : '<span class="badge badge-suspended">● Suspended</span>';
+    return `<tr>
+      <td>
+        <div class="student-name">${s.name}</div>
+        <div class="student-id">ID #${s.id}</div>
+      </td>
+      <td>
+        <div class="gpa-bar">
+          <span style="font-family:var(--font-mono);font-size:13px;color:${gpaColor}">${gpa}</span>
+          <div class="gpa-track"><div class="gpa-fill" style="width:${(s.gpa_scaled/400)*100}%;background:${gpaColor}"></div></div>
+        </div>
+      </td>
+      <td>
+        <div class="sem-progress">${dots}</div>
+        <div style="font-size:11px;color:var(--slate);font-family:var(--font-mono);margin-top:3px">
+          ${s.current_semester}/${s.total_semesters}
+        </div>
+      </td>
+      <td><span style="font-family:var(--font-mono);color:var(--green)">₹${fmt(s.total_received)}</span></td>
+      <td>${badge}</td>
+      <td>
+        <div class="actions-cell">
+          <button class="icon-btn success" onclick="openGpaModal(${s.id})" title="Update GPA">📊</button>
+          <button class="icon-btn" onclick="openGpaModal(${s.id})" title="Update GPA">✏️</button>
+          <button class="icon-btn ${s.is_active?'danger':''}" onclick="toggleActive(${s.id})"
+            title="${s.is_active?'Suspend':'Reactivate'}">
+            ${s.is_active?'🔒':'🔓'}
+          </button>
+          <button class="icon-btn success" onclick="quickRelease(${s.id})" title="Release Funds">💸</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+//  Render — Ledger
+// ════════════════════════════════════════
+function renderLedger() {
+  const filter = (el('ledgerFilter')||{value:'all'}).value;
+  const studentFilter = (el('ledgerStudent')||{value:'all'}).value;
+  const q = (el('ledgerSearch')||{value:''}).value.toLowerCase();
+  let rows = [...CONTRACT.ledger].reverse();
+  if (filter !== 'all') rows = rows.filter(r => r.status === filter);
+  if (studentFilter !== 'all') rows = rows.filter(r => String(r.studentId) === studentFilter);
+  if (q) rows = rows.filter(r =>
+    r.txHash.toLowerCase().includes(q) ||
+    r.studentName.toLowerCase().includes(q) ||
+    r.reason.toLowerCase().includes(q)
+  );
+  el('ledgerCount').textContent = rows.length;
+  const tbody = el('ledgerTable');
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No transactions</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const statusBadge = r.status === 'Released'
+      ? '<span class="badge badge-active">✓ Released</span>'
+      : '<span class="badge badge-suspended">✕ Withheld</span>';
+    return `<tr>
+      <td><span class="tx-hash" onclick="toast('info','TX: ${r.txHash}')">${r.txHash}</span></td>
+      <td>
+        <div style="font-weight:600;color:var(--ivory)">${r.studentName}</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--slate)">ID #${r.studentId}</div>
+      </td>
+      <td><span class="tag tag-gold">Sem ${r.semester}</span></td>
+      <td><span class="amount-cell ${r.status.toLowerCase()}">
+        ${r.status==='Released'?'₹'+fmt(r.amount):'—'}
+      </span></td>
+      <td>${statusBadge}</td>
+      <td style="font-size:12px;color:var(--slate2);max-width:180px">${r.reason}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--slate)">#${r.block}</td>
+    </tr>`;
+  }).join('');
+}
+
+function populateLedgerStudentFilter() {
+  const sel = el('ledgerStudent');
+  const current = sel.value;
+  const options = '<option value="all">All Students</option>' +
+    Object.values(CONTRACT.students).map(s =>
+      `<option value="${s.id}"${s.id==current?' selected':''}>${s.name}</option>`
+    ).join('');
+  sel.innerHTML = options;
+}
+
+// ════════════════════════════════════════
+//  Render — Analytics
+// ════════════════════════════════════════
+function renderAnalytics() {
+  const students = Object.values(CONTRACT.students);
+  const released = CONTRACT.ledger.filter(r=>r.status==='Released');
+  const withheld = CONTRACT.ledger.filter(r=>r.status==='Withheld');
+  const active = students.filter(s=>s.is_active);
+  const avgGpa = active.length
+    ? (active.reduce((a,s)=>a+s.gpa_scaled,0)/active.length/100).toFixed(2)
+    : '—';
+  const disRate = CONTRACT.ledger.length
+    ? Math.round(released.length/CONTRACT.ledger.length*100)+'%' : '0%';
+  el('a-avgGpa').textContent = avgGpa;
+  el('a-disRate').textContent = disRate;
+  el('a-withheld').textContent = withheld.length;
+  el('a-semActive').textContent = students.reduce((a,s)=>a+s.current_semester,0);
+
+  // GPA distribution
+  const buckets = {'0.0–1.0':0,'1.0–2.0':0,'2.0–2.5':0,'2.5–3.0':0,'3.0–3.5':0,'3.5–4.0':0};
+  students.forEach(s => {
+    const g = s.gpa_scaled/100;
+    if (g < 1) buckets['0.0–1.0']++;
+    else if (g < 2) buckets['1.0–2.0']++;
+    else if (g < 2.5) buckets['2.0–2.5']++;
+    else if (g < 3) buckets['2.5–3.0']++;
+    else if (g < 3.5) buckets['3.0–3.5']++;
+    else buckets['3.5–4.0']++;
+  });
+  const maxB = Math.max(...Object.values(buckets), 1);
+  const colors = ['#e05c5c','#e89840','#e89840','#2ecc8a','#2ecc8a','#2ecc8a'];
+  el('gpaDistChart').innerHTML = Object.entries(buckets).map(([k,v],i) =>
+    `<div class="bar" style="height:${Math.max((v/maxB)*120,4)}px;background:${colors[i]};opacity:0.7;flex:1" title="${k}: ${v}"></div>`
+  ).join('');
+  el('gpaDistLabels').innerHTML = Object.keys(buckets).map(k =>
+    `<div class="bar-label" style="flex:1;text-align:center">${k}</div>`
+  ).join('');
+  el('gpaDistLabels').style.display = 'flex';
+
+  // Status breakdown
+  const sbEl = el('statusBreakdown');
+  if (students.length === 0) {
+    sbEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">No students</div></div>';
+  } else {
+    const counts = {Active:0,Suspended:0,Graduated:0};
+    students.forEach(s => { if(s.is_active) counts.Active++; else counts.Suspended++; });
+    const total = students.length;
+    sbEl.innerHTML = Object.entries(counts).map(([k,v]) => {
+      const pct = total ? Math.round(v/total*100) : 0;
+      const c = k==='Active'?'var(--green)':k==='Suspended'?'var(--red)':'var(--gold2)';
+      return `<div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:13px;color:var(--ivory2)">${k}</span>
+          <span style="font-family:var(--font-mono);font-size:13px;color:${c}">${v} (${pct}%)</span>
+        </div>
+        <div style="height:6px;background:var(--navy2);border-radius:3px">
+          <div style="height:100%;width:${pct}%;background:${c};border-radius:3px;transition:width .5s"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Per-student table
+  const tbody = el('analyticsTable');
+  if (students.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-text">No data</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = students.map(s => {
+    const gpa = (s.gpa_scaled/100).toFixed(2);
+    const remaining = (CONTRACT.pool.max_semesters - s.current_semester) * CONTRACT.pool.per_semester_amt;
+    return `<tr>
+      <td><div class="student-name">${s.name}</div><div class="student-id">ID #${s.id}</div></td>
+      <td style="font-family:var(--font-mono);color:${s.gpa_scaled>=CONTRACT.pool.min_gpa_scaled?'var(--green)':'var(--red)'}">${gpa}</td>
+      <td><span class="tag tag-gold">Sem ${s.current_semester}/${s.total_semesters}</span></td>
+      <td style="font-family:var(--font-mono);color:var(--green)">₹${fmt(s.total_received)}</td>
+      <td style="font-family:var(--font-mono);color:var(--gold2)">₹${fmt(Math.max(0,remaining))}</td>
+      <td>${s.is_active?'<span class="badge badge-active">Active</span>':'<span class="badge badge-suspended">Suspended</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+//  Release Funds Flow
+// ════════════════════════════════════════
+function populateReleaseDropdown() {
+  const sel = el('releaseStudent');
+  sel.innerHTML = '<option value="">— choose a student —</option>' +
+    Object.values(CONTRACT.students).map(s =>
+      `<option value="${s.id}">${s.name} (ID: ${s.id})</option>`
+    ).join('');
+}
+
+function onStudentSelect() {
+  const id = parseInt(el('releaseStudent').value);
+  resetGates();
+  if (!id) { el('studentPreview').style.display='none'; return; }
+  const s = CONTRACT.students[id];
+  if (!s) return;
+  el('studentPreview').style.display = 'block';
+  el('prev-sem').textContent = s.current_semester+'/'+s.total_semesters;
+  el('prev-gpa').textContent = (s.gpa_scaled/100).toFixed(2)+' ('+s.gpa_scaled+')';
+  el('prev-rcv').textContent = '₹'+fmt(s.total_received);
+  el('prev-status').textContent = s.is_active ? 'Active' : 'Suspended';
+  el('prev-status').style.color = s.is_active ? 'var(--green)' : 'var(--red)';
+
+  setStep(2);
+  runGateChecks(s);
+}
+
+function runGateChecks(s) {
+  const p = CONTRACT.pool;
+  const nextSem = s.current_semester + 1;
+
+  // Gate 1: student found
+  setGate(1, true, 'FOUND');
+  // Gate 2: active
+  setGate(2, s.is_active, s.is_active ? 'ACTIVE' : 'SUSPENDED');
+  // Gate 3: semester limit
+  const semOk = nextSem <= p.max_semesters && nextSem <= s.total_semesters;
+  setGate(3, semOk, semOk ? `SEM ${nextSem}/${p.max_semesters}` : 'EXCEEDED');
+  // Gate 4: GPA (skip if sem 0)
+  const gpaOk = s.current_semester === 0 || s.gpa_scaled >= p.min_gpa_scaled;
+  setGate(4, gpaOk, s.current_semester === 0 ? 'SKIPPED (SEM 1)' :
+    gpaOk ? `${(s.gpa_scaled/100).toFixed(2)} ≥ ${(p.min_gpa_scaled/100).toFixed(2)}` :
+    `${(s.gpa_scaled/100).toFixed(2)} < ${(p.min_gpa_scaled/100).toFixed(2)}`);
+  // Gate 5: duplicate
+  const dk = `${s.id}_${nextSem}`;
+  const noDup = !CONTRACT.disbursed[dk];
+  setGate(5, noDup, noDup ? 'NO DUPLICATE' : 'ALREADY PAID');
+  // Gate 6: solvency
+  const solvent = p.total_locked >= p.total_disbursed + p.per_semester_amt;
+  setGate(6, solvent, solvent ? `₹${fmt(p.total_locked-p.total_disbursed)} AVAILABLE` : 'INSUFFICIENT');
+
+  const allPass = s.is_active && semOk && gpaOk && noDup && solvent;
+  el('releaseFundsBtn').disabled = !allPass;
+  if (allPass) setStep(3);
+}
+
+function setGate(n, pass, result) {
+  const gateEl = el('gate-'+n);
+  const iconEl = gateEl.querySelector('.gate-icon');
+  const resEl  = el('gr-'+n);
+  iconEl.className = 'gate-icon '+(pass?'pass':'fail');
+  iconEl.textContent = pass ? '✓' : '✕';
+  resEl.className = 'gate-result '+(pass?'pass':'fail');
+  resEl.textContent = result;
+}
+
+function resetGates() {
+  for (let i=1; i<=6; i++) {
+    const gateEl = el('gate-'+i);
+    const iconEl = gateEl.querySelector('.gate-icon');
+    const resEl  = el('gr-'+i);
+    iconEl.className = 'gate-icon pending';
+    iconEl.textContent = '?';
+    resEl.className = 'gate-result pending';
+    resEl.textContent = '—';
+  }
+  el('releaseFundsBtn').disabled = true;
+  setStep(1);
+}
+
+function setStep(n) {
+  for (let i=1; i<=4; i++) {
+    const s = el('step-'+i);
+    s.classList.remove('active','done');
+    if (i < n) s.classList.add('done');
+    else if (i === n) s.classList.add('active');
+  }
+}
+
+function executeFundRelease() {
+  const id = parseInt(el('releaseStudent').value);
+  if (!id) return;
+  try {
+    const amount = contract_release_funds(id);
+    setStep(4);
+    el('releaseFundsBtn').disabled = true;
+    toast('success', `₹${fmt(amount)} released to ${CONTRACT.students[id].name}!`);
+    updateAll();
+  } catch(e) {
+    const s = CONTRACT.students[id];
+    const nextSem = s ? s.current_semester + 1 : 0;
+    contract_record_withheld(id, nextSem, e.message);
+    toast('error', 'Release failed: '+e.message);
+    updateAll();
+    // Re-run gate checks to show failure state
+    if (s) runGateChecks(s);
+  }
+}
+
+function quickRelease(id) {
+  navigate('release');
+  setTimeout(() => {
+    el('releaseStudent').value = id;
+    onStudentSelect();
+  }, 100);
+}
+
+// ════════════════════════════════════════
+//  Modals
+// ════════════════════════════════════════
+function openModal(id) { el(id).classList.add('open') }
+function closeModal(id) { el(id).classList.remove('open') }
+
+function registerStudent() {
+  const name = el('reg-name').value.trim();
+  const id   = parseInt(el('reg-id').value);
+  const sems = parseInt(el('reg-sems').value);
+  const gpa  = parseInt(el('reg-gpa').value)||0;
+  if (!name || !id || !sems) return toast('warning', 'Please fill all required fields');
+  if (CONTRACT.students[id]) return toast('error', 'Student ID already exists');
+  try {
+    contract_register(id, name, sems, gpa);
+    closeModal('registerModal');
+    toast('success', `${name} registered successfully!`);
+    el('reg-name').value=''; el('reg-id').value=''; el('reg-sems').value='8'; el('reg-gpa').value='0';
+    updateAll();
+  } catch(e) { toast('error', e.message); }
+}
+
+function openGpaModal(id) {
+  const s = CONTRACT.students[id];
+  if (!s) return;
+  el('gpa-studentId').value = id;
+  el('gpa-studentName').textContent = s.name;
+  el('gpa-value').value = s.gpa_scaled;
+  el('gpa-minRequired').textContent = CONTRACT.pool.min_gpa_scaled;
+  openModal('gpaModal');
+}
+
+function updateGpa() {
+  const id  = parseInt(el('gpa-studentId').value);
+  const gpa = parseInt(el('gpa-value').value);
+  if (isNaN(gpa) || gpa < 0 || gpa > 400) return toast('error','GPA must be 0–400');
+  try {
+    contract_update_gpa(id, gpa);
+    closeModal('gpaModal');
+    toast('success', 'GPA updated to '+(gpa/100).toFixed(2));
+    updateAll();
+  } catch(e) { toast('error', e.message); }
+}
+
+function toggleActive(id) {
+  const s = CONTRACT.students[id];
+  if (!s) return;
+  contract_set_active(id, !s.is_active);
+  toast('info', `${s.name} is now ${s.is_active ? 'Active' : 'Suspended'}`);
+  updateAll();
+}
+
+// ════════════════════════════════════════
+//  Settings
+// ════════════════════════════════════════
+function applySettings() {
+  CONTRACT.pool.total_locked     = parseInt(el('set-pool').value)||1_000_000;
+  CONTRACT.pool.per_semester_amt = parseInt(el('set-perSem').value)||100_000;
+  CONTRACT.pool.min_gpa_scaled   = parseInt(el('set-minGpa').value)||250;
+  CONTRACT.pool.max_semesters    = parseInt(el('set-maxSem').value)||8;
+  toast('success', 'Contract parameters updated');
+  updateAll();
+}
+function resetAllStudents() {
+  if (!confirm('Reset all students?')) return;
+  CONTRACT.students = {};
+  CONTRACT.disbursed = {};
+  toast('info', 'All students cleared');
+  updateAll();
+}
+function resetLedger() {
+  if (!confirm('Clear ledger?')) return;
+  CONTRACT.ledger = [];
+  CONTRACT.activity = [];
+  toast('info', 'Ledger cleared');
+  updateAll();
+}
+function fullReset() {
+  if (!confirm('Full reset? This clears everything.')) return;
+  CONTRACT.students = {};
+  CONTRACT.disbursed = {};
+  CONTRACT.ledger = [];
+  CONTRACT.activity = [];
+  CONTRACT.pool.total_disbursed = 0;
+  toast('warning', 'Contract fully reset');
+  updateAll();
+}
+
+// ════════════════════════════════════════
+//  Toast notifications
+// ════════════════════════════════════════
+function toast(type, msg) {
+  const icons = {success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'};
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span class="toast-icon">${icons[type]||'📢'}</span><span class="toast-msg">${msg}</span>`;
+  el('toastContainer').prepend(t);
+  setTimeout(() => { t.classList.add('hiding'); setTimeout(()=>t.remove(),300); }, 3500);
+}
+
+// ════════════════════════════════════════
+//  Utilities
+// ════════════════════════════════════════
+function el(id) { return document.getElementById(id); }
+function fmt(n) {
+  if (!n) return '0';
+  if (n >= 100000) return (n/100000).toFixed(n%100000===0?0:1)+'L';
+  if (n >= 1000) return (n/1000).toFixed(n%1000===0?0:1)+'K';
+  return n.toString();
+}
+function updateAll() {
+  el('nb-students').textContent = Object.keys(CONTRACT.students).length;
+  el('nb-ledger').textContent   = CONTRACT.ledger.length;
+  if (currentPage === 'dashboard') renderDashboard();
+  if (currentPage === 'students')  renderStudents();
+  if (currentPage === 'ledger')    { renderLedger(); populateLedgerStudentFilter(); }
+  if (currentPage === 'analytics') renderAnalytics();
+  if (currentPage === 'release')   populateReleaseDropdown();
+}
+function refreshData() {
+  toast('info', 'Syncing with contract...');
+  setTimeout(() => { updateAll(); toast('success','Data refreshed'); }, 600);
+}
+
+function switchContractTab(tab, id) {
+  document.querySelectorAll('.contract-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  ['src','abi','storage'].forEach(t => {
+    const el2 = el('ct-'+t);
+    if (el2) el2.style.display = t===id ? 'block' : 'none';
+  });
+}
+
+// ════════════════════════════════════════
+//  Seed demo data
+// ════════════════════════════════════════
+function seedDemoData() {
+  const demo = [
+    {id:1001, name:'Arjun Mehta',    sems:8, gpa:340, sem:2},
+    {id:1002, name:'Priya Sharma',   sems:8, gpa:280, sem:1},
+    {id:1003, name:'Rohan Das',      sems:8, gpa:190, sem:1},
+    {id:1004, name:'Sneha Nair',     sems:6, gpa:380, sem:3},
+    {id:1005, name:'Vikram Joshi',   sems:8, gpa:0,   sem:0},
+  ];
+  demo.forEach(d => {
+    contract_register(d.id, d.name, d.sems, d.gpa);
+    // simulate past releases
+    for (let i=0; i<d.sem; i++) {
+      const s = CONTRACT.students[d.id];
+      const nextSem = s.current_semester + 1;
+      CONTRACT.pool.total_disbursed += CONTRACT.pool.per_semester_amt;
+      CONTRACT.disbursed[`${d.id}_${nextSem}`] = true;
+      s.current_semester = nextSem;
+      s.total_received += CONTRACT.pool.per_semester_amt;
+      CONTRACT.clock++;
+      const txHash = 'TX'+CONTRACT.clock.toString(16).toUpperCase().padStart(8,'0');
+      CONTRACT.ledger.push({
+        txHash, studentId:d.id, studentName:d.name,
+        semester:nextSem, amount:CONTRACT.pool.per_semester_amt,
+        status:'Released', reason:`Semester ${nextSem} disbursement approved`,
+        block:CONTRACT.clock
+      });
+    }
+  });
+  // Rohan withheld (low GPA)
+  contract_record_withheld(1003, 2, 'GPA 1.90 below required 2.50');
+  CONTRACT.activity = [];
+  addActivity('registered','Demo data loaded — 5 students seeded');
+}
+
+// ── Init ──
+CONTRACT.address = 'CDSC'+Math.random().toString(36).substr(2,8).toUpperCase()+'SRBN';
+seedDemoData();
+renderDashboard();
+updateAll();
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
