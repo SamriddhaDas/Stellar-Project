@@ -1,377 +1,343 @@
-#![no_std]
+// Student Scholarship Disbursement Contract
+// Conditional fund release: locked funds released per semester/performance
 
-use soroban_sdk::{
-    contract, contractimpl, contracttype,
-    Address, Env,
-};
+use std::collections::HashMap;
 
-// ──────────────────────────────────────────────
-//  Composite Storage Keys
-// ──────────────────────────────────────────────
-
-#[contracttype]
-#[derive(Clone)]
-pub enum DataKey {
-    Admin,
-    PoolLocked,
-    PoolDisbursed,
-    PerSemesterAmt,
-    MinGpaScaled,
-    MaxSemesters,
-    Student(u64),
-    Disbursed(u64, u32),
+#[derive(Debug, Clone, PartialEq)]
+pub enum ScholarshipStatus {
+    Locked,
+    PendingReview,
+    Disbursed,
+    Revoked,
 }
 
-// ──────────────────────────────────────────────
-//  On-chain Student Record
-// ──────────────────────────────────────────────
+#[derive(Debug, Clone)]
+pub struct SemesterRecord {
+    pub semester_id: u32,
+    pub gpa: f64,
+    pub credits_completed: u32,
+    pub attendance_pct: f64,
+    pub disbursed: bool,
+    pub amount: u64, // in smallest unit (e.g., paise / cents)
+}
 
-#[contracttype]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Student {
-    pub id: u64,
-    pub gpa_scaled: u32,
-    pub current_semester: u32,
-    pub total_semesters: u32,
-    pub is_active: bool,
-    pub total_received: u64,
+    pub id: String,
+    pub name: String,
+    pub total_locked_funds: u64,
+    pub released_funds: u64,
+    pub status: ScholarshipStatus,
+    pub semesters: Vec<SemesterRecord>,
 }
 
-// ──────────────────────────────────────────────
-//  Contract
-// ──────────────────────────────────────────────
+#[derive(Debug)]
+pub struct ScholarshipContract {
+    pub admin: String,
+    pub students: HashMap<String, Student>,
+    pub min_gpa: f64,
+    pub min_attendance: f64,
+    pub min_credits: u32,
+    pub per_semester_amount: u64,
+}
 
-#[contract]
-pub struct ScholarshipContract;
-
-#[contractimpl]
 impl ScholarshipContract {
-
-    pub fn initialize(
-        env: Env,
-        admin: Address,
-        total_funds: u64,
+    pub fn new(
+        admin: String,
+        min_gpa: f64,
+        min_attendance: f64,
+        min_credits: u32,
         per_semester_amount: u64,
-        min_gpa_scaled: u32,
-        max_semesters: u32,
-    ) {
-        if env.storage().instance().has(&DataKey::Admin) {
-            panic!("already initialized");
+    ) -> Self {
+        ScholarshipContract {
+            admin,
+            students: HashMap::new(),
+            min_gpa,
+            min_attendance,
+            min_credits,
+            per_semester_amount,
         }
-        admin.require_auth();
-        env.storage().instance().set(&DataKey::Admin,          &admin);
-        env.storage().instance().set(&DataKey::PoolLocked,     &total_funds);
-        env.storage().instance().set(&DataKey::PoolDisbursed,  &0u64);
-        env.storage().instance().set(&DataKey::PerSemesterAmt, &per_semester_amount);
-        env.storage().instance().set(&DataKey::MinGpaScaled,   &min_gpa_scaled);
-        env.storage().instance().set(&DataKey::MaxSemesters,   &max_semesters);
     }
 
+    /// Register a student and lock their total scholarship funds
     pub fn register_student(
-        env: Env,
-        caller: Address,
-        student_id: u64,
+        &mut self,
+        caller: &str,
+        student_id: String,
+        name: String,
         total_semesters: u32,
-    ) {
-        caller.require_auth();
-        Self::assert_admin(&env, &caller);
-        if env.storage().persistent().has(&DataKey::Student(student_id)) {
-            panic!("student already registered");
+    ) -> Result<String, String> {
+        if caller != self.admin {
+            return Err("Only admin can register students".to_string());
         }
-        env.storage().persistent().set(&DataKey::Student(student_id), &Student {
-            id: student_id,
-            gpa_scaled: 0,
-            current_semester: 0,
-            total_semesters,
-            is_active: true,
-            total_received: 0,
+        if self.students.contains_key(&student_id) {
+            return Err(format!("Student {} already registered", student_id));
+        }
+        let total_locked = self.per_semester_amount * total_semesters as u64;
+        let student = Student {
+            id: student_id.clone(),
+            name: name.clone(),
+            total_locked_funds: total_locked,
+            released_funds: 0,
+            status: ScholarshipStatus::Locked,
+            semesters: vec![],
+        };
+        self.students.insert(student_id.clone(), student);
+        Ok(format!(
+            "Student '{}' registered. Total locked funds: {} units across {} semesters.",
+            name, total_locked, total_semesters
+        ))
+    }
+
+    /// Submit semester performance — triggers conditional release check
+    pub fn submit_semester_performance(
+        &mut self,
+        caller: &str,
+        student_id: &str,
+        semester_id: u32,
+        gpa: f64,
+        credits_completed: u32,
+        attendance_pct: f64,
+    ) -> Result<String, String> {
+        if caller != self.admin {
+            return Err("Only admin can submit performance".to_string());
+        }
+        let student = self
+            .students
+            .get_mut(student_id)
+            .ok_or_else(|| format!("Student {} not found", student_id))?;
+
+        // Check duplicate semester
+        if student.semesters.iter().any(|s| s.semester_id == semester_id) {
+            return Err(format!("Semester {} already recorded", semester_id));
+        }
+
+        let passed = gpa >= self.min_gpa
+            && attendance_pct >= self.min_attendance
+            && credits_completed >= self.min_credits;
+
+        let amount = if passed { self.per_semester_amount } else { 0 };
+
+        if passed {
+            student.released_funds += amount;
+            student.status = ScholarshipStatus::Disbursed;
+        } else {
+            student.status = ScholarshipStatus::PendingReview;
+        }
+
+        student.semesters.push(SemesterRecord {
+            semester_id,
+            gpa,
+            credits_completed,
+            attendance_pct,
+            disbursed: passed,
+            amount,
         });
+
+        if passed {
+            Ok(format!(
+                "✅ Semester {} passed. {} units disbursed to student '{}'.",
+                semester_id, amount, student.name
+            ))
+        } else {
+            Ok(format!(
+                "❌ Semester {} failed criteria. Funds remain locked for student '{}'.\n  GPA: {:.2} (min {:.2}), Attendance: {:.1}% (min {:.1}%), Credits: {} (min {})",
+                semester_id, student.name, gpa, self.min_gpa,
+                attendance_pct, self.min_attendance,
+                credits_completed, self.min_credits
+            ))
+        }
     }
 
-    pub fn update_gpa(env: Env, caller: Address, student_id: u64, gpa_scaled: u32) {
-        caller.require_auth();
-        Self::assert_admin(&env, &caller);
-        if gpa_scaled > 400 {
-            panic!("gpa must be <= 4.00 (400 scaled)");
+    /// Query student scholarship summary
+    pub fn get_student_summary(&self, student_id: &str) -> Result<String, String> {
+        let student = self
+            .students
+            .get(student_id)
+            .ok_or_else(|| format!("Student {} not found", student_id))?;
+
+        let locked = student.total_locked_funds - student.released_funds;
+        let mut summary = format!(
+            "=== Scholarship Summary: {} ({}) ===\nStatus: {:?}\nTotal Locked: {} | Released: {} | Remaining: {}\n\nSemester Records:\n",
+            student.name, student.id, student.status,
+            student.total_locked_funds, student.released_funds, locked
+        );
+        for s in &student.semesters {
+            summary.push_str(&format!(
+                "  Sem {}: GPA={:.2}, Credits={}, Attendance={:.1}% → {} ({})\n",
+                s.semester_id,
+                s.gpa,
+                s.credits_completed,
+                s.attendance_pct,
+                if s.disbursed { "DISBURSED" } else { "LOCKED" },
+                if s.disbursed {
+                    format!("{} units", s.amount)
+                } else {
+                    "0 units".to_string()
+                }
+            ));
         }
-        let mut student: Student = env.storage().persistent()
-            .get(&DataKey::Student(student_id)).expect("student not found");
-        student.gpa_scaled = gpa_scaled;
-        env.storage().persistent().set(&DataKey::Student(student_id), &student);
+        Ok(summary)
     }
 
-    pub fn set_active(env: Env, caller: Address, student_id: u64, active: bool) {
-        caller.require_auth();
-        Self::assert_admin(&env, &caller);
-        let mut student: Student = env.storage().persistent()
-            .get(&DataKey::Student(student_id)).expect("student not found");
-        student.is_active = active;
-        env.storage().persistent().set(&DataKey::Student(student_id), &student);
-    }
-
-    pub fn release_funds(env: Env, caller: Address, student_id: u64) -> u64 {
-        caller.require_auth();
-        Self::assert_admin(&env, &caller);
-
-        let mut student: Student = env.storage().persistent()
-            .get(&DataKey::Student(student_id)).expect("student not found");
-
-        if !student.is_active {
-            panic!("student is not active");
+    /// Revoke scholarship (admin only)
+    pub fn revoke_scholarship(&mut self, caller: &str, student_id: &str) -> Result<String, String> {
+        if caller != self.admin {
+            return Err("Only admin can revoke scholarships".to_string());
         }
-
-        let next_semester = student.current_semester + 1;
-        let max_semesters: u32 = env.storage().instance().get(&DataKey::MaxSemesters).unwrap();
-        if next_semester > max_semesters || next_semester > student.total_semesters {
-            panic!("semester limit exceeded");
-        }
-
-        let min_gpa: u32 = env.storage().instance().get(&DataKey::MinGpaScaled).unwrap();
-        if student.current_semester > 0 && student.gpa_scaled < min_gpa {
-            panic!("gpa below threshold");
-        }
-
-        let dis_key = DataKey::Disbursed(student_id, next_semester);
-        if env.storage().persistent().has(&dis_key) {
-            panic!("already disbursed for this semester");
-        }
-
-        let locked: u64    = env.storage().instance().get(&DataKey::PoolLocked).unwrap();
-        let disbursed: u64 = env.storage().instance().get(&DataKey::PoolDisbursed).unwrap();
-        let amount: u64    = env.storage().instance().get(&DataKey::PerSemesterAmt).unwrap();
-
-        if locked < disbursed + amount {
-            panic!("insufficient funds in pool");
-        }
-
-        env.storage().instance().set(&DataKey::PoolDisbursed, &(disbursed + amount));
-        env.storage().persistent().set(&dis_key, &true);
-
-        student.current_semester = next_semester;
-        student.total_received   += amount;
-        env.storage().persistent().set(&DataKey::Student(student_id), &student);
-
-        amount
-    }
-
-    pub fn available_balance(env: Env) -> u64 {
-        let locked: u64    = env.storage().instance().get(&DataKey::PoolLocked).unwrap();
-        let disbursed: u64 = env.storage().instance().get(&DataKey::PoolDisbursed).unwrap();
-        locked.saturating_sub(disbursed)
-    }
-
-    pub fn get_student(env: Env, student_id: u64) -> Student {
-        env.storage().persistent()
-            .get(&DataKey::Student(student_id)).expect("student not found")
-    }
-
-    pub fn is_disbursed(env: Env, student_id: u64, semester: u32) -> bool {
-        env.storage().persistent().has(&DataKey::Disbursed(student_id, semester))
-    }
-
-    fn assert_admin(env: &Env, caller: &Address) {
-        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
-        if *caller != admin {
-            panic!("unauthorized: caller is not admin");
-        }
+        let student = self
+            .students
+            .get_mut(student_id)
+            .ok_or_else(|| format!("Student {} not found", student_id))?;
+        student.status = ScholarshipStatus::Revoked;
+        Ok(format!("Scholarship revoked for student '{}'.", student.name))
     }
 }
 
-// ══════════════════════════════════════════════
-//  TESTS
-// ══════════════════════════════════════════════
+// ─── Tests ────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
-    use soroban_sdk::{testutils::Address as _, Address, Env};
 
-    fn setup() -> (Env, ScholarshipContractClient<'static>, Address) {
-        let env = Env::default();
-        env.mock_all_auths();
-        let cid    = env.register(ScholarshipContract, ());
-        let client = ScholarshipContractClient::new(&env, &cid);
-        let admin  = Address::generate(&env);
-        client.initialize(&admin, &1_000_000u64, &100_000u64, &250u32, &8u32);
-        (env, client, admin)
+    fn setup_contract() -> ScholarshipContract {
+        ScholarshipContract::new(
+            "admin".to_string(),
+            7.0,   // min GPA
+            75.0,  // min attendance %
+            18,    // min credits
+            50000, // per semester amount
+        )
     }
 
-    // ── 1. Initial balance ───────────────────────────────
-    #[test]
-    fn test_initial_balance() {
-        let (_env, client, _admin) = setup();
-        assert_eq!(client.available_balance(), 1_000_000u64);
-    }
-
-    // ── 2. Register student ──────────────────────────────
     #[test]
     fn test_register_student() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        let s = client.get_student(&1u64);
-        assert_eq!(s.id,              1u64);
-        assert!(s.is_active);
-        assert_eq!(s.current_semester, 0u32);
-        assert_eq!(s.total_received,  0u64);
+        let mut contract = setup_contract();
+        let result = contract.register_student("admin", "S001".to_string(), "Alice".to_string(), 8);
+        assert!(result.is_ok());
+        assert!(contract.students.contains_key("S001"));
+        let student = &contract.students["S001"];
+        assert_eq!(student.total_locked_funds, 400_000); // 50000 * 8
+        assert_eq!(student.status, ScholarshipStatus::Locked);
     }
 
-    // ── 3. Duplicate registration ────────────────────────
     #[test]
-    #[should_panic(expected = "student already registered")]
-    fn test_duplicate_registration() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        client.register_student(&admin, &1u64, &8u32);
+    fn test_only_admin_can_register() {
+        let mut contract = setup_contract();
+        let result =
+            contract.register_student("hacker", "S002".to_string(), "Bob".to_string(), 4);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Only admin can register students");
     }
 
-    // ── 4. Semester 1 — no GPA gate ─────────────────────
     #[test]
-    fn test_semester_1_no_gpa_gate() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        let released = client.release_funds(&admin, &1u64);
-        assert_eq!(released, 100_000u64);
-        let s = client.get_student(&1u64);
-        assert_eq!(s.current_semester, 1u32);
-        assert_eq!(s.total_received,   100_000u64);
-        assert_eq!(client.available_balance(), 900_000u64);
+    fn test_disburse_on_pass() {
+        let mut contract = setup_contract();
+        contract
+            .register_student("admin", "S001".to_string(), "Alice".to_string(), 8)
+            .unwrap();
+        let result =
+            contract.submit_semester_performance("admin", "S001", 1, 8.5, 21, 85.0);
+        assert!(result.is_ok());
+        let student = &contract.students["S001"];
+        assert_eq!(student.released_funds, 50_000);
+        assert_eq!(student.status, ScholarshipStatus::Disbursed);
+        assert!(student.semesters[0].disbursed);
     }
 
-    // ── 5. Semester 2 — good GPA ─────────────────────────
     #[test]
-    fn test_semester_2_good_gpa() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        client.release_funds(&admin, &1u64);
-        client.update_gpa(&admin, &1u64, &350u32);
-        let released = client.release_funds(&admin, &1u64);
-        assert_eq!(released, 100_000u64);
-        assert_eq!(client.get_student(&1u64).current_semester, 2u32);
+    fn test_lock_on_fail_gpa() {
+        let mut contract = setup_contract();
+        contract
+            .register_student("admin", "S001".to_string(), "Alice".to_string(), 8)
+            .unwrap();
+        let result =
+            contract.submit_semester_performance("admin", "S001", 1, 5.5, 20, 80.0);
+        assert!(result.is_ok());
+        let student = &contract.students["S001"];
+        assert_eq!(student.released_funds, 0);
+        assert_eq!(student.status, ScholarshipStatus::PendingReview);
+        assert!(!student.semesters[0].disbursed);
     }
 
-    // ── 6. Low GPA withheld ──────────────────────────────
     #[test]
-    #[should_panic(expected = "gpa below threshold")]
-    fn test_low_gpa_withheld() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        client.release_funds(&admin, &1u64);
-        client.update_gpa(&admin, &1u64, &180u32);
-        client.release_funds(&admin, &1u64);
+    fn test_lock_on_low_attendance() {
+        let mut contract = setup_contract();
+        contract
+            .register_student("admin", "S001".to_string(), "Alice".to_string(), 8)
+            .unwrap();
+        let result =
+            contract.submit_semester_performance("admin", "S001", 1, 8.0, 20, 60.0);
+        assert!(result.is_ok());
+        let student = &contract.students["S001"];
+        assert_eq!(student.released_funds, 0);
     }
 
-    // ── 7. Duplicate disbursement guard ──────────────────
     #[test]
-    fn test_disbursed_flag_set() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        assert!(!client.is_disbursed(&1u64, &1u32));
-        client.release_funds(&admin, &1u64);
-        assert!(client.is_disbursed(&1u64, &1u32));
-        assert!(!client.is_disbursed(&1u64, &2u32));
+    fn test_multi_semester_partial_release() {
+        let mut contract = setup_contract();
+        contract
+            .register_student("admin", "S001".to_string(), "Alice".to_string(), 4)
+            .unwrap();
+        contract
+            .submit_semester_performance("admin", "S001", 1, 8.0, 20, 80.0)
+            .unwrap(); // pass
+        contract
+            .submit_semester_performance("admin", "S001", 2, 5.0, 18, 75.0)
+            .unwrap(); // fail (gpa)
+        contract
+            .submit_semester_performance("admin", "S001", 3, 7.5, 19, 78.0)
+            .unwrap(); // pass
+        let student = &contract.students["S001"];
+        assert_eq!(student.released_funds, 100_000); // 2 semesters passed
+        assert_eq!(student.semesters.len(), 3);
     }
 
-    // ── 8. Semester limit exceeded ───────────────────────
     #[test]
-    #[should_panic(expected = "semester limit exceeded")]
-    fn test_semester_limit() {
-        let env = Env::default();
-        env.mock_all_auths();
-        let cid    = env.register(ScholarshipContract, ());
-        let client = ScholarshipContractClient::new(&env, &cid);
-        let admin  = Address::generate(&env);
-        client.initialize(&admin, &1_000_000u64, &100_000u64, &200u32, &2u32);
-        client.register_student(&admin, &10u64, &2u32);
-        client.release_funds(&admin, &10u64);
-        client.update_gpa(&admin, &10u64, &300u32);
-        client.release_funds(&admin, &10u64);
-        client.update_gpa(&admin, &10u64, &300u32);
-        client.release_funds(&admin, &10u64); // sem 3 → panic
+    fn test_duplicate_semester_rejected() {
+        let mut contract = setup_contract();
+        contract
+            .register_student("admin", "S001".to_string(), "Alice".to_string(), 4)
+            .unwrap();
+        contract
+            .submit_semester_performance("admin", "S001", 1, 8.0, 20, 80.0)
+            .unwrap();
+        let result = contract.submit_semester_performance("admin", "S001", 1, 9.0, 22, 90.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("already recorded"));
     }
 
-    // ── 9. Insufficient funds ────────────────────────────
     #[test]
-    #[should_panic(expected = "insufficient funds in pool")]
-    fn test_insufficient_funds() {
-        let env = Env::default();
-        env.mock_all_auths();
-        let cid    = env.register(ScholarshipContract, ());
-        let client = ScholarshipContractClient::new(&env, &cid);
-        let admin  = Address::generate(&env);
-        client.initialize(&admin, &50_000u64, &100_000u64, &0u32, &8u32);
-        client.register_student(&admin, &20u64, &8u32);
-        client.release_funds(&admin, &20u64);
+    fn test_revoke_scholarship() {
+        let mut contract = setup_contract();
+        contract
+            .register_student("admin", "S001".to_string(), "Alice".to_string(), 4)
+            .unwrap();
+        let result = contract.revoke_scholarship("admin", "S001");
+        assert!(result.is_ok());
+        assert_eq!(contract.students["S001"].status, ScholarshipStatus::Revoked);
     }
 
-    // ── 10. Suspended student blocked ────────────────────
     #[test]
-    #[should_panic(expected = "student is not active")]
-    fn test_suspended_blocked() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        client.set_active(&admin, &1u64, &false);
-        client.release_funds(&admin, &1u64);
+    fn test_student_summary() {
+        let mut contract = setup_contract();
+        contract
+            .register_student("admin", "S001".to_string(), "Alice".to_string(), 4)
+            .unwrap();
+        contract
+            .submit_semester_performance("admin", "S001", 1, 8.0, 20, 82.0)
+            .unwrap();
+        let summary = contract.get_student_summary("S001");
+        assert!(summary.is_ok());
+        let s = summary.unwrap();
+        assert!(s.contains("Alice"));
+        assert!(s.contains("DISBURSED"));
     }
 
-    // ── 11. Invalid GPA rejected ─────────────────────────
     #[test]
-    #[should_panic(expected = "gpa must be <= 4.00 (400 scaled)")]
-    fn test_invalid_gpa() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        client.update_gpa(&admin, &1u64, &450u32);
-    }
-
-    // ── 12. Multiple students isolated ───────────────────
-    #[test]
-    fn test_multiple_students_isolated() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        client.register_student(&admin, &2u64, &8u32);
-        client.release_funds(&admin, &1u64);
-        client.update_gpa(&admin, &1u64, &300u32);
-        client.release_funds(&admin, &1u64);
-        client.release_funds(&admin, &2u64);
-        assert_eq!(client.get_student(&1u64).total_received, 200_000u64);
-        assert_eq!(client.get_student(&2u64).total_received, 100_000u64);
-        assert_eq!(client.available_balance(), 700_000u64);
-    }
-
-    // ── 13. Reactivate suspended student ─────────────────
-    #[test]
-    fn test_reactivate_student() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        client.set_active(&admin, &1u64, &false);
-        client.set_active(&admin, &1u64, &true);
-        let released = client.release_funds(&admin, &1u64);
-        assert_eq!(released, 100_000u64);
-    }
-
-    // ── 14. Unauthorized caller blocked ──────────────────
-    #[test]
-    #[should_panic]
-    fn test_unauthorized_caller() {
-        let (env, client, admin) = setup();
-        client.register_student(&admin, &1u64, &8u32);
-        let hacker = Address::generate(&env);
-        env.mock_all_auths_allowing_non_root_auth();
-        client.release_funds(&hacker, &1u64);
-    }
-
-    // ── 15. Full 8-semester journey ──────────────────────
-    #[test]
-    fn test_full_scholarship_journey() {
-        let (_env, client, admin) = setup();
-        client.register_student(&admin, &99u64, &8u32);
-        for sem in 1u32..=8 {
-            if sem > 1 {
-                client.update_gpa(&admin, &99u64, &(300u32 + sem * 5));
-            }
-            let released = client.release_funds(&admin, &99u64);
-            assert_eq!(released, 100_000u64);
-        }
-        assert_eq!(client.get_student(&99u64).total_received, 800_000u64);
-        assert_eq!(client.get_student(&99u64).current_semester, 8u32);
+    fn test_unknown_student_error() {
+        let contract = setup_contract();
+        let result = contract.get_student_summary("UNKNOWN");
+        assert!(result.is_err());
     }
 }
